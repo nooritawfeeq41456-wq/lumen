@@ -1,0 +1,2539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: full-bleed 3D world; floating dark panels — brand top-left, tools left, threads right, clock bottom-left */
+:root{
+  color-scheme: dark;
+  --panel: rgba(21,19,29,.9);
+  --panel-solid: #17151f;
+  --raise: #221f2d;
+  --raise-2: #2c2839;
+  --line: rgba(236,230,255,.09);
+  --fg: #efebf7;
+  --muted: #9b94ad;
+  --faint: #6c667c;
+  --accent: #ee4a42;
+  --accent-hi: #ff5c53;
+  --ok: #3fe0a4;
+  --warn: #ffbf3f;
+  --info: #6aa8ff;
+  --display: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  --ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 14px;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:#1a1622;color:var(--fg);font-family:var(--ui);overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{position:relative;height:100%;overflow:hidden}
+#scene{position:absolute;inset:0}
+#scene canvas{display:block;width:100%;height:100%;touch-action:none}
+button,select,textarea,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.mono{font-family:var(--mono)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);box-shadow:0 12px 40px rgba(8,4,20,.35)}
+
+/* brand */
+#brand{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:calc(16px + env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;z-index:5}
+#brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(160deg,#2a2f4a,#14172a);display:grid;place-items:center;border:1px solid rgba(63,224,164,.35)}
+#brand h1{margin:0;font-family:var(--display);font-weight:900;font-size:18px;letter-spacing:.01em;line-height:1}
+#brand .sub{font-size:12px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px}
+#brand .sub .dot{width:7px;height:7px}
+
+/* toolbar */
+#toolbar{position:absolute;left:calc(16px + env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:2px;padding:6px;z-index:5}
+#toolbar button{width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center}
+#toolbar button:hover{background:var(--raise-2);color:var(--fg)}
+#toolbar button.on{color:var(--ok)}
+#toolbar hr{border:0;border-top:1px solid var(--line);margin:4px 6px}
+
+/* sidebar */
+#sidebar{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:300px;display:flex;flex-direction:column;z-index:6;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
+#sidebar.collapsed{transform:translateX(calc(100% + 30px));opacity:0;pointer-events:none}
+.sb-body{padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0;flex:1}
+.back{background:none;border:0;color:var(--muted);font-size:13px;padding:2px 0;display:flex;align-items:center;gap:6px;align-self:flex-start}
+.back:hover{color:var(--fg)}
+.repo-card{display:flex;gap:10px;align-items:center}
+.hexico{width:30px;height:30px;flex:none;clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:grid;place-items:center}
+.hexico i{width:20px;height:20px;clip-path:inherit;background:#2a2638;display:block}
+.repo-name{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.repo-path{font-size:11.5px;color:var(--faint)}
+.btn-primary{background:var(--accent);border:0;color:#fff;font-weight:700;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;box-shadow:0 4px 14px rgba(238,74,66,.3)}
+.btn-primary:hover{background:var(--accent-hi)}
+.btn-ghost{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:600;color:var(--fg)}
+.btn-ghost:hover{background:var(--raise-2)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-top:4px}
+.list{list-style:none;margin:0 -6px;padding:0;overflow:auto;min-height:0;flex:1}
+.list li{display:flex;align-items:center;gap:10px;padding:8px;border-radius:9px;cursor:pointer;font-size:13.5px}
+.list li:hover{background:var(--raise)}
+.list li.sel{background:var(--raise-2)}
+.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .age{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.list .meta{font-size:11.5px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--faint)}
+.dot.working{background:var(--ok);box-shadow:0 0 0 0 rgba(63,224,164,.6);animation:pulse 1.6s infinite}
+.dot.review{background:var(--warn)}
+.dot.idle{background:#5f596f}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,224,164,.55)}70%{box-shadow:0 0 0 7px rgba(63,224,164,0)}100%{box-shadow:0 0 0 0 rgba(63,224,164,0)}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--raise);border-radius:10px;padding:9px 10px}
+.stat b{display:block;font-family:var(--display);font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;padding:8px}
+
+/* repo labels in world */
+.rlabel{position:absolute;left:0;top:0;pointer-events:none;font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;padding:3px 8px;border-radius:6px;background:rgba(20,16,30,.55);white-space:nowrap;display:flex;align-items:center;gap:6px;z-index:2;will-change:transform}
+.rlabel i{width:8px;height:8px;border-radius:2px;display:block}
+#labels.off{display:none}
+
+/* popup */
+#popup{position:absolute;left:0;top:0;width:272px;padding:12px;z-index:7;will-change:transform}
+.pp-head{display:flex;gap:10px;align-items:flex-start}
+.botface{width:36px;height:36px;border-radius:10px;background:#0f1a1d;flex:none;display:grid;place-items:center;border:1px solid rgba(63,224,164,.25)}
+.pp-title{flex:1;font-weight:700;font-size:14px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pp-x{background:none;border:0;color:var(--muted);width:24px;height:24px;border-radius:6px;font-size:18px;line-height:1}
+.pp-x:hover{background:var(--raise-2);color:var(--fg)}
+.pp-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin:8px 0 8px 46px}
+.pp-status .lbl{color:var(--fg);font-weight:600}
+.pp-bar{height:4px;border-radius:4px;background:var(--raise-2);overflow:hidden;margin-bottom:10px}
+.pp-bar i{display:block;height:100%;width:0;background:var(--ok);border-radius:4px;transition:width .6s}
+.pp-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pp-actions .btn-primary,.pp-actions .btn-ghost{padding:8px 10px;font-size:13px}
+
+/* drawer */
+#drawer{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));right:calc(332px + env(safe-area-inset-right,0px));width:390px;display:flex;flex-direction:column;z-index:8}
+#sidebar.collapsed ~ #drawer{right:calc(16px + env(safe-area-inset-right,0px))}
+.d-head{display:flex;gap:10px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--line)}
+.d-title{font-weight:700;font-size:15px;line-height:1.3}
+.d-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.d-meta .mono{color:var(--faint)}
+#log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.m-user{align-self:flex-end;max-width:85%;background:var(--raise-2);padding:9px 12px;border-radius:12px 12px 4px 12px;font-size:13.5px;line-height:1.45}
+.m-agent{font-size:13.5px;line-height:1.55;color:var(--fg)}
+.m-think{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.45}
+.m-tool{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;color:#c9c3d9;min-width:0}
+.m-tool .tag{font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:5px;background:var(--raise-2);color:var(--muted);flex:none}
+.m-tool .tag.Edit{color:var(--warn)}
+.m-tool .tag.Run{color:var(--ok)}
+.m-tool span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.m-working{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ok)}
+#composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+#composer textarea{flex:1;resize:none;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13.5px;min-width:0}
+#composer button{align-self:flex-end}
+
+/* timebar */
+#timebar{position:absolute;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:12px 14px;width:300px;z-index:5;display:flex;flex-direction:column;gap:8px}
+.tb-top{display:flex;align-items:baseline;gap:10px}
+#phaseName{font-family:var(--display);font-weight:900;font-size:20px}
+#clock{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+#modeTag{margin-left:auto;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700}
+#timeSlider{width:100%;accent-color:var(--warn)}
+.tb-chips{display:flex;gap:4px}
+.tb-chips button{flex:1;border:1px solid var(--line);background:var(--raise);border-radius:8px;padding:5px 0;font-size:12px;font-weight:600;color:var(--muted)}
+.tb-chips button:hover{color:var(--fg)}
+.tb-chips button.on{background:var(--fg);color:#17151f;border-color:var(--fg)}
+
+/* modal */
+#modal,.modal-wrap{position:absolute;inset:0;background:rgba(10,6,20,.45);display:grid;place-items:center;z-index:20;padding:16px}
+.modal-card{width:min(460px,100%);padding:20px;display:flex;flex-direction:column;gap:10px;background:var(--panel-solid)}
+.modal-card h2{margin:0 0 4px;font-family:var(--display);font-weight:900;font-size:22px}
+.modal-card label{font-size:12px;font-weight:600;color:var(--muted)}
+.modal-card input,.modal-card select,.modal-card textarea{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+.modal-card textarea{resize:vertical;min-height:90px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--muted)}
+.chips button:hover{color:var(--fg);background:var(--raise-2)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.note{font-size:12px;color:var(--faint);line-height:1.45}
+
+/* toast */
+#toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px;font-size:13.5px;z-index:30;max-width:calc(100% - 32px)}
+#toast button{background:none;border:0;color:var(--warn);font-weight:700}
+
+
+/* ---------- sidebar tabs ---------- */
+#sidebar{width:360px}
+.sb-tabs{display:flex;gap:4px;padding:10px 10px 0}
+.sb-tabs button{flex:1;background:none;border:0;border-radius:9px;padding:8px 0;font-weight:700;font-size:13px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px}
+.sb-tabs button:hover{color:var(--fg);background:var(--raise)}
+.sb-tabs button.on{background:var(--raise-2);color:var(--fg)}
+#drawer{right:calc(392px + env(safe-area-inset-right,0px))}
+
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatch input{position:absolute;opacity:0;pointer-events:none}
+.swatch span{display:block;width:30px;height:30px;border-radius:9px;background:var(--c);cursor:pointer;border:2px solid transparent;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.swatch input:checked + span{border-color:var(--fg)}
+.swatch input:focus-visible + span{outline:2px solid var(--info);outline-offset:2px}
+.btn-ghost.rm{color:var(--muted);font-weight:600}
+.btn-ghost.danger{color:#fff;background:var(--accent);border-color:var(--accent)}
+.msg-card{margin:8px 0;border:1px solid rgba(63,224,164,.3);border-radius:12px;overflow:hidden;background:rgba(63,224,164,.06)}
+.msg-head{padding:8px 12px;font-size:12px;font-weight:700;color:var(--ok);border-bottom:1px solid rgba(63,224,164,.18)}
+.msg-body{padding:10px 12px;font-size:13.5px;line-height:1.5;white-space:pre-wrap}
+.msg-actions{display:flex;gap:6px;padding:0 10px 10px}
+.msg-actions .btn-ghost,.msg-actions .btn-primary{padding:6px 11px;font-size:12.5px;text-decoration:none}
+
+#fileView{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));right:calc(392px + env(safe-area-inset-right,0px));width:440px;display:flex;flex-direction:column;z-index:8}
+#sidebar.collapsed ~ #fileView{right:calc(16px + env(safe-area-inset-right,0px))}
+#fvText{flex:1;resize:none;border:0;outline:0;background:#100e17;color:#e6e0f2;font-family:var(--mono);font-size:12.5px;line-height:1.55;padding:12px 14px;white-space:pre;overflow:auto;min-height:0}
+#fvPathIn{width:100%;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px}
+.fv-actions{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);align-items:center}
+.fv-actions .grow{flex:1}
+.fv-actions .btn-ghost,.fv-actions .btn-primary{padding:7px 12px;font-size:12.5px}
+.cdot{display:inline-block;width:8px;height:8px;border-radius:2px}
+.eb-row{display:flex;align-items:center;justify-content:space-between}
+.mini{background:none;border:1px solid var(--line);border-radius:7px;padding:3px 8px;font-size:11px;color:var(--muted);letter-spacing:0;text-transform:none;font-weight:600}
+.mini:hover{color:var(--fg);background:var(--raise)}
+.list.files{flex:0 1 auto;max-height:32%}
+.list.files li{padding:6px 8px;font-size:12.5px}
+.fico{width:22px;flex:none;color:var(--faint);font-family:var(--mono);font-size:10px;text-align:center}
+.dot.ask{background:#b98cff;animation:pulseAsk 1.4s infinite}
+@keyframes pulseAsk{0%{box-shadow:0 0 0 0 rgba(185,140,255,.6)}70%{box-shadow:0 0 0 7px rgba(185,140,255,0)}100%{box-shadow:0 0 0 0 rgba(185,140,255,0)}}
+.m-working.ask{color:#c9a8ff}
+.m-sys{font-size:12.5px;line-height:1.5;color:var(--muted);border-left:2px solid #b98cff;padding:4px 0 4px 10px}
+.m-tool .tag.Team{color:#c9a8ff}.m-tool .tag.Delete{color:#ff8a80}
+#approvals{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(440px, calc(100% - 32px));z-index:40;display:flex;flex-direction:column;gap:8px}
+.ap-card{padding:12px 14px;background:var(--panel-solid);border-color:rgba(185,140,255,.45);box-shadow:0 14px 50px rgba(8,4,20,.55)}
+.ap-who{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.ap-who i{width:9px;height:9px;border-radius:2px;display:block}
+.ap-title{font-weight:700;font-size:14.5px;margin:4px 0 8px;overflow-wrap:anywhere}
+.ap-detail{margin:0 0 10px;max-height:140px;overflow:auto;background:#100e17;border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.45;color:#cfc8de;white-space:pre-wrap;overflow-wrap:anywhere}
+.ap-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.ap-actions .btn-ghost,.ap-actions .btn-primary{padding:7px 12px;font-size:12.5px}
+.ap-more{text-align:center;font-size:12px;color:var(--muted);background:var(--panel-solid);border-radius:8px;padding:4px}
+
+.ai-row{display:flex;flex-direction:column;gap:6px}
+.ai-key{display:flex;gap:6px}.ai-key input{flex:1;min-width:0}
+.ai-help a{color:var(--info)}.ai-help code{font-family:var(--mono);font-size:11.5px;background:var(--raise-2);padding:1px 5px;border-radius:5px}
+.ai-out{color:var(--warn);min-height:1em}
+.modal-card{max-height:calc(100% - 32px);overflow:auto}
+
+/* ---------- chat ---------- */
+.chat{display:flex;flex-direction:column;min-height:0;flex:1}
+.chat-head{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;font-size:12px;color:var(--muted)}
+.chat-head .grow{flex:1}
+.chat-head button{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:12px;color:var(--muted)}
+.chat-head button:hover{color:var(--fg)}
+.chat-log{flex:1;overflow:auto;padding:4px 14px 12px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.c-user{align-self:flex-end;max-width:88%;background:var(--raise-2);padding:9px 12px;border-radius:14px 14px 4px 14px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.c-imgs{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:6px}
+.c-imgs img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.c-bot{font-size:13.5px;line-height:1.55;overflow-wrap:anywhere;min-width:0}
+.c-bot.err{color:var(--warn)}
+.c-tool{font-size:12px;color:var(--ok);font-family:var(--mono)}
+.md p{margin:0 0 8px}.md p:last-child{margin-bottom:0}
+.md h3,.md h4{margin:10px 0 6px;font-size:14px;font-family:var(--display);font-weight:800}
+.md ul,.md ol{margin:0 0 8px;padding-left:20px}
+.md li{margin:2px 0}
+.md code{font-family:var(--mono);font-size:12px;background:var(--raise-2);padding:1px 5px;border-radius:5px}
+.cb{margin:8px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#100e17}
+.cb-head{display:flex;align-items:center;gap:4px;padding:5px 6px 5px 10px;background:var(--raise);font-size:11px;color:var(--muted);font-family:var(--mono)}
+.cb-head .grow{flex:1}
+.cb-head button{background:none;border:0;color:var(--muted);font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:6px;font-family:var(--ui)}
+.cb-head button:hover{background:var(--raise-2);color:var(--fg)}
+.cb-head button.go{color:var(--ok)}
+.cb pre{margin:0;padding:10px 12px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.5;color:#dcd6ea;max-height:320px}
+.chat-empty{margin:auto 0;display:flex;flex-direction:column;gap:10px;padding:6px 0}
+.chat-empty h3{margin:0;font-family:var(--display);font-weight:900;font-size:19px}
+.chat-empty p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.sugg{display:flex;flex-direction:column;gap:6px}
+.sugg button{text-align:left;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px;color:var(--fg)}
+.sugg button:hover{background:var(--raise-2)}
+.attach-row{display:flex;gap:6px;padding:0 14px 8px;flex-wrap:wrap}
+.attach-row .chip{position:relative}
+.attach-row img{width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.attach-row button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:0;background:#000;color:#fff;font-size:12px;line-height:1}
+.chat-form{border-top:1px solid var(--line);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px}
+.chat-form textarea{resize:none;background:var(--raise);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:13.5px;max-height:140px}
+.chat-form.drag textarea{border-color:var(--ok)}
+.chat-tools{display:flex;align-items:center;gap:4px}
+.chat-tools .grow{flex:1}
+.icon-btn{width:34px;height:34px;border-radius:9px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center}
+.icon-btn:hover{background:var(--raise-2);color:var(--fg)}
+.icon-btn.on{color:var(--ok);background:rgba(63,224,164,.1)}
+.icon-btn.rec{color:#fff;background:var(--accent);animation:pulse 1.4s infinite}
+.chat-tools .btn-primary{padding:8px 16px}
+.c-note{font-size:11.5px;color:var(--faint);text-align:center}
+
+/* ---------- code lab ---------- */
+.lab{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:calc(76px + env(safe-area-inset-left,0px));right:calc(392px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9;display:flex;flex-direction:column;background:var(--panel-solid);overflow:hidden}
+#sidebar.collapsed ~ .lab{right:calc(16px + env(safe-area-inset-right,0px))}
+.lab-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:nowrap;min-width:0}
+.lab-head > *{flex:none}
+.lab-head #projName{flex:1 1 60px}
+.lab-title{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:900;font-size:17px;margin-right:4px}
+.seg{display:flex;background:var(--raise);border-radius:9px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:7px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--fg);color:#17151f}
+#projName{background:transparent;border:1px solid transparent;border-radius:8px;padding:5px 8px;font-size:13px;font-weight:600;width:150px;max-width:220px;min-width:50px}
+#projName:hover,#projName:focus{border-color:var(--line);background:var(--raise)}
+.lab-head .grow{flex:1}
+.lab-head .btn-ghost,.lab-head .btn-primary{padding:7px 11px;font-size:12.5px}
+.lab-ai{display:flex;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);align-items:center}
+.lab-ai input{flex:1;min-width:0;background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:13px}
+.lab-ai .btn-ghost{padding:7px 11px;font-size:12.5px;white-space:nowrap}
+#labAiStatus{font-size:12px;color:var(--muted);white-space:nowrap}
+.lab-main{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0}
+.lab-edit{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid var(--line)}
+.file-tabs{display:flex;gap:2px;padding:6px 8px 0;background:var(--raise)}
+.file-tabs button{border:0;background:none;padding:6px 12px;border-radius:8px 8px 0 0;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.file-tabs button.on{background:#100e17;color:var(--fg)}
+.editor{flex:1;display:flex;min-height:0;background:#100e17;overflow:hidden}
+.gutter{margin:0;padding:12px 8px 12px 10px;text-align:right;color:#4d475e;font-family:var(--mono);font-size:13px;line-height:1.55;user-select:none;overflow:hidden;min-width:38px}
+#code{flex:1;resize:none;border:0;outline:0;background:transparent;color:#e6e0f2;font-family:var(--mono);font-size:13px;line-height:1.55;padding:12px 12px 12px 4px;white-space:pre;overflow:auto;tab-size:2;min-width:0}
+.lab-out{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0d0c13}
+.out-tabs{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--raise);font-size:12px;color:var(--muted);font-weight:600}
+.out-tabs .grow{flex:1}
+.out-tabs button{background:none;border:0;color:var(--muted);font-size:12px;padding:3px 8px;border-radius:6px}
+.out-tabs button:hover{color:var(--fg);background:var(--raise-2)}
+#previewWrap{flex:1;min-height:0;background:#fff;position:relative}
+#preview{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#fff}
+#console{margin:0;padding:10px 12px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.5;color:#d6d0e4;white-space:pre-wrap;overflow-wrap:anywhere;min-height:0}
+.lab[data-mode="web"] #console{flex:0 0 32%;border-top:1px solid var(--line)}
+.lab:not([data-mode="web"]) #console{flex:1}
+.lab:not([data-mode="web"]) #previewWrap{flex:0 0 0;height:0;overflow:hidden}
+#console .e{color:#ff8a80}#console .w{color:var(--warn)}#console .i{color:var(--info)}#console .s{color:var(--faint)}
+.proj-list{position:absolute;top:56px;right:120px;width:280px;max-height:60%;overflow:auto;padding:8px;z-index:3;background:var(--panel-solid)}
+.proj-list .row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;font-size:13px;cursor:pointer}
+.proj-list .row:hover{background:var(--raise)}
+.proj-list .row span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proj-list .row small{color:var(--faint);font-size:11px}
+.proj-list .del{background:none;border:0;color:var(--faint);font-size:15px}
+.proj-list .del:hover{color:var(--accent)}
+.proj-list h4{margin:4px 8px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+
+@media (max-width: 860px){
+  #drawer,#fileView{right:calc(16px + env(safe-area-inset-right,0px))}
+}
+@media (max-width: 760px){
+  #brand .sub{display:none}
+  #brand{padding:6px 12px 6px 6px}
+  #toolbar{top:calc(66px + env(safe-area-inset-top,0px));bottom:auto;left:calc(12px + env(safe-area-inset-left,0px));transform:none;flex-direction:row;padding:4px}
+  #toolbar hr{border-top:0;border-left:1px solid var(--line);margin:6px 2px}
+  #toolbar button{width:34px;height:34px}
+  #sidebar{top:auto;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:auto;height:56%}
+  #sidebar.collapsed{transform:translateY(calc(100% + 30px))}
+  #drawer{inset:calc(12px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) calc(12px + env(safe-area-inset-left,0px));width:auto}
+  #timebar{left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:auto;padding:10px 12px}
+  #popup{width:240px}
+}
+@media (max-width: 760px){
+  #sidebar{height:64%}
+  #fileView{top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:auto}
+  .lab,#sidebar.collapsed ~ .lab{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+  .lab-main{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  .lab-edit{border-right:0;border-bottom:1px solid var(--line)}
+  #projName{width:100px}
+  .lab-head{gap:6px;flex-wrap:wrap}
+  .lab-head #projName{flex:1 1 80px}
+  .lab-head .btn-ghost{padding:6px 8px}
+  .lab-title{font-size:15px}
+  .proj-list{right:8px;left:8px;width:auto;top:100px}
+  #labAiStatus{display:none}
+}
+#labAiStatus{max-width:38%;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+
+<div id="app">
+  <div id="scene" aria-label="3D world of AI agents at work"></div>
+  <div id="labels"></div>
+
+  <header id="brand" class="panel">
+    <div class="logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="5" fill="#0f1a1d" stroke="#3fe0a4" stroke-width="1.6"/><rect x="8" y="10" width="2.2" height="3.2" rx="1" fill="#3fe0a4"/><rect x="13.8" y="10" width="2.2" height="3.2" rx="1" fill="#3fe0a4"/><path d="M9.5 15.4q2.5 1.6 5 0" stroke="#3fe0a4" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <h1>Jarvis</h1>
+      <div class="sub"><span class="dot working"></span><span id="brandStats">–</span></div>
+    </div>
+  </header>
+
+  <nav id="toolbar" class="panel" aria-label="View tools">
+    <button id="tHome" title="Reset view" aria-label="Reset view"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg></button>
+    <button id="tIn" title="Zoom in" aria-label="Zoom in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button id="tOut" title="Zoom out" aria-label="Zoom out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+    <button id="tSpin" title="Slowly orbit the world" aria-label="Slowly orbit the world"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>
+    <button id="tStorm" title="Sandstorm" aria-label="Sandstorm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg></button>
+    <hr>
+    <button id="tChat" title="Chat with Claude (C)" aria-label="Chat with Claude"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></button>
+    <button id="tCode" title="Code Lab (K)" aria-label="Code Lab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg></button>
+    <hr>
+    <button id="tLabels" class="on" title="Show project names" aria-label="Show project names"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></button>
+    <button id="tSide" class="on" title="Show threads panel" aria-label="Show threads panel"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></svg></button>
+  </nav>
+
+  <aside id="sidebar" class="panel" aria-label="Threads and chat">
+    <div class="sb-tabs" role="tablist">
+      <button id="tabThreads" class="on" role="tab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Threads</button>
+      <button id="tabChat" role="tab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat</button>
+    </div>
+    <div class="sb-body" id="sbBody"></div>
+    <div id="chat" class="chat" hidden>
+      <div class="chat-head"><span id="chatStatus">Connecting…</span><span class="grow"></span><button id="aiBtn" type="button" title="AI settings">AI settings</button><button id="chatNew" type="button">New chat</button></div>
+      <div id="chatLog" class="chat-log" aria-live="polite"></div>
+      <div id="attachRow" class="attach-row" hidden></div>
+      <form id="chatForm" class="chat-form">
+        <textarea id="chatInput" rows="2" placeholder="Message Jarvis… paste or drop a picture too" aria-label="Message Jarvis"></textarea>
+        <div class="chat-tools">
+          <button type="button" class="icon-btn" id="attachBtn" title="Add pictures" aria-label="Add pictures"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></button>
+          <input type="file" id="fileIn" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+          <button type="button" class="icon-btn" id="micBtn" title="Talk instead of typing" aria-label="Talk instead of typing"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+          <button type="button" class="icon-btn" id="speakBtn" title="Read replies out loud" aria-label="Read replies out loud" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+          <span class="grow"></span>
+          <button type="submit" id="sendBtn" class="btn-primary">Send</button>
+        </div>
+      </form>
+    </div>
+  </aside>
+
+  <section id="drawer" class="panel" hidden aria-label="Thread">
+    <div class="d-head">
+      <div class="botface" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="8" y="9" width="2.4" height="3.4" rx="1" fill="#3fe0a4"/><rect x="13.6" y="9" width="2.4" height="3.4" rx="1" fill="#3fe0a4"/><path d="M9 15q3 2 6 0" stroke="#3fe0a4" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="d-title" id="dTitle"></div><div class="d-meta" id="dMeta"></div></div>
+      <button class="pp-x" id="dClose" aria-label="Close thread">×</button>
+    </div>
+    <div id="log" aria-live="polite"></div>
+    <form id="composer">
+      <textarea id="msg" rows="2" placeholder="Reply to the agent…" aria-label="Reply to the agent"></textarea>
+      <button class="btn-primary" type="submit">Send</button>
+    </form>
+  </section>
+
+  <section id="lab" class="panel lab" hidden data-mode="web" aria-label="Code Lab">
+    <header class="lab-head">
+      <div class="lab-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Code Lab</div>
+      <div class="seg" id="langSeg"><button data-mode="web">Web page</button><button data-mode="js">JavaScript</button><button data-mode="py">Python</button></div>
+      <input id="projName" value="Untitled" aria-label="Project name">
+      <button class="btn-ghost" id="labTemplates" type="button">Examples</button>
+      <button class="btn-ghost" id="labProjects" type="button">Projects</button>
+      <button class="btn-ghost" id="labSave" type="button">Save</button>
+      <button class="btn-ghost" id="labDownload" type="button">Download</button>
+      <button class="btn-primary" id="labRun" type="button" title="Run (Ctrl+Enter)">▶ Run</button>
+      <button class="pp-x" id="labClose" type="button" aria-label="Close Code Lab">×</button>
+    </header>
+    <div class="lab-ai">
+      <input id="labAsk" placeholder="Tell the AI what to build or change, e.g. “make a stock price chart with a moving average”" aria-label="Ask the AI to write code">
+      <span id="labAiStatus"></span>
+      <button class="btn-ghost" id="labAskBtn" type="button">Ask AI</button>
+      <button class="btn-ghost" id="labUndo" type="button" hidden>Undo</button>
+    </div>
+    <div class="lab-main">
+      <div class="lab-edit">
+        <div class="file-tabs" id="fileTabs"></div>
+        <div class="editor"><pre class="gutter" id="gutter" aria-hidden="true">1</pre><textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code editor"></textarea></div>
+      </div>
+      <div class="lab-out">
+        <div class="out-tabs"><span id="outLabel">Preview</span><span class="grow"></span><button id="labFix" type="button" hidden>Fix with AI</button><button id="clearOut" type="button">Clear</button></div>
+        <div id="previewWrap"><iframe id="preview" title="Your program" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+        <pre id="console"></pre>
+      </div>
+    </div>
+    <div id="projList" class="proj-list panel" hidden></div>
+  </section>
+
+  <section id="fileView" class="panel" hidden aria-label="File">
+    <div class="d-head">
+      <div class="botface" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3fe0a4" stroke-width="2" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="d-title mono" id="fvPath"></div><input id="fvPathIn" class="mono" placeholder="notes/new-file.md" aria-label="File path" hidden><div class="d-meta" id="fvMeta"></div></div>
+      <button class="pp-x" id="fvClose" aria-label="Close file">×</button>
+    </div>
+    <textarea id="fvText" spellcheck="false" aria-label="File contents"></textarea>
+    <div class="fv-actions"><button class="btn-ghost" id="fvDelete">Delete</button><span class="grow"></span><button class="btn-ghost" id="fvLab">Run in Code Lab</button><button class="btn-primary" id="fvSave">Save</button></div>
+  </section>
+
+  <div id="approvals" hidden aria-live="assertive"></div>
+
+  <div id="popup" class="panel" hidden role="dialog" aria-label="Agent station">
+    <div class="pp-head">
+      <div class="botface" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="8" y="9" width="2.4" height="3.4" rx="1" fill="#3fe0a4"/><rect x="13.6" y="9" width="2.4" height="3.4" rx="1" fill="#3fe0a4"/><path d="M9 15q3 2 6 0" stroke="#3fe0a4" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="pp-title" id="ppTitle"></div>
+      <button class="pp-x" id="ppClose" aria-label="Close">×</button>
+    </div>
+    <div class="pp-status"><span class="dot" id="ppDot"></span><span class="lbl" id="ppLabel"></span><span id="ppAge"></span></div>
+    <div class="pp-bar"><i id="ppBar"></i></div>
+    <div class="pp-actions">
+      <button class="btn-primary" id="ppOpen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Open</button>
+      <button class="btn-ghost" id="ppArchive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/></svg>Archive</button>
+    </div>
+  </div>
+
+  <div id="timebar" class="panel">
+    <div class="tb-top"><span id="phaseName">Day</span><span id="clock" class="mono">12:00 PM</span><span id="modeTag">Auto</span></div>
+    <input type="range" id="timeSlider" min="0" max="24" step="0.05" value="12" aria-label="Time of day">
+    <div class="tb-chips" id="tbChips">
+      <button data-t="auto" title="Follow your computer's clock">Auto</button>
+      <button data-t="6">Dawn</button>
+      <button data-t="12">Day</button>
+      <button data-t="18.6">Dusk</button>
+      <button data-t="22">Night</button>
+      <button data-t="play" title="Speed through a whole day" aria-label="Speed through a whole day">▶</button>
+    </div>
+  </div>
+
+  <div id="modal" hidden>
+    <form id="newForm" class="modal-card panel">
+      <h2>New conversation</h2>
+      <label for="repoSel">Project</label>
+      <select id="repoSel"></select>
+      <label for="task">What should the agent work on?</label>
+      <textarea id="task" placeholder="e.g. Add a dark mode toggle to the settings page"></textarea>
+      <div class="chips" id="taskChips"></div>
+      <p class="note">A new bot station gets built on the project's tile, and two bots walk over to start on it.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelNew">Cancel</button>
+        <button type="submit" class="btn-primary">Start agent</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="projModal" class="modal-wrap" hidden>
+    <form id="pmForm" class="modal-card panel">
+      <h2>Add project</h2>
+      <label for="pmName">Project name</label>
+      <input id="pmName" maxlength="40" placeholder="e.g. crypto-tracker" autocomplete="off">
+      <label>Tile color</label>
+      <div class="swatches" id="pmColors"></div>
+      <p class="note">A new hexagon tile gets built in the desert with its own robots. Projects you add are saved in this browser.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="pmCancel">Cancel</button>
+        <button type="submit" class="btn-primary">Build it</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="aiModal" class="modal-wrap" hidden>
+    <form id="aiForm" class="modal-card panel" autocomplete="off">
+      <h2>AI settings</h2>
+      <p class="note" id="aiNow"></p>
+      <label for="aiProv">AI service</label>
+      <select id="aiProv"></select>
+      <p class="note ai-help" id="aiHelp"></p>
+      <div id="aiKeyRow" class="ai-row"><label for="aiKey">API key</label><div class="ai-key"><input id="aiKey" type="password" spellcheck="false" placeholder="Paste your key"><button type="button" class="btn-ghost" id="aiShow">Show</button></div></div>
+      <div id="aiBaseRow" class="ai-row" hidden><label for="aiBase">Base URL</label><input id="aiBase" spellcheck="false" placeholder="https://…/v1"></div>
+      <div class="ai-row"><label for="aiModel">Model</label><input id="aiModel" spellcheck="false"></div>
+      <p class="note">Your key is saved only in this browser on this device and is sent only to the service you picked. Don’t paste it anywhere else, and remove it here if you use a shared computer.</p>
+      <p class="note ai-out" id="aiTestOut" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="aiRemove">Remove key</button>
+        <span style="flex:1"></span>
+        <button type="button" class="btn-ghost" id="aiCancel">Cancel</button>
+        <button type="submit" class="btn-primary" id="aiSave">Test &amp; save</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="toast" class="panel" hidden><span id="toastText"></span><button id="toastAct"></button></div>
+</div>
+
+<script type="text/plain" id="tpl-profit-html"><main class="card">
+  <h1>Trade Profit Calculator</h1>
+  <label>Buy price <input id="buy" type="number" value="182.50" step="0.01"></label>
+  <label>Sell price <input id="sell" type="number" value="191.20" step="0.01"></label>
+  <label>Shares <input id="qty" type="number" value="25"></label>
+  <label>Fee per trade <input id="fee" type="number" value="0" step="0.01"></label>
+  <div id="out" class="out"></div>
+</main></script>
+<script type="text/plain" id="tpl-profit-css">body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 20%, #2b2350, #120f1c);
+  font-family: system-ui, sans-serif;
+  color: #f1edf9;
+}
+.card {
+  width: min(340px, 90vw);
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  gap: 12px;
+}
+h1 { margin: 0 0 4px; font-size: 20px; }
+label { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: #b9b2cc; }
+input { width: 110px; padding: 8px; border-radius: 8px; border: 1px solid #3a3350; background: #1a1528; color: white; font-size: 15px; }
+.out { margin-top: 8px; padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: baseline; }
+.out b { font-size: 26px; }
+.up { background: rgba(63, 224, 164, 0.15); color: #3fe0a4; }
+.down { background: rgba(255, 92, 83, 0.15); color: #ff6b62; }</script>
+<script type="text/plain" id="tpl-profit-js">// Recalculate the profit every time a number changes
+const $ = (id) => document.getElementById(id);
+
+function calc() {
+  const buy = +$('buy').value;
+  const sell = +$('sell').value;
+  const qty = +$('qty').value;
+  const fee = +$('fee').value;
+
+  const cost = buy * qty + fee;
+  const profit = (sell - buy) * qty - fee * 2; // fee to buy + fee to sell
+  const pct = cost ? (profit / cost) * 100 : 0;
+
+  $('out').className = 'out ' + (profit >= 0 ? 'up' : 'down');
+  $('out').innerHTML =
+    '<b>' + (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toFixed(2) + '</b>' +
+    '<span>' + pct.toFixed(2) + '% return</span>';
+  console.log('Profit:', profit.toFixed(2));
+}
+
+document.querySelectorAll('input').forEach((i) => i.addEventListener('input', calc));
+calc();</script>
+<script type="text/plain" id="tpl-bots-html"><canvas id="c"></canvas>
+<p class="hint">Click anywhere to add a bot</p></script>
+<script type="text/plain" id="tpl-bots-css">html, body { margin: 0; height: 100%; background: #1b1626; overflow: hidden; }
+canvas { display: block; }
+.hint { position: fixed; top: 10px; left: 12px; margin: 0; color: #9b94ad; font: 14px system-ui, sans-serif; }</script>
+<script type="text/plain" id="tpl-bots-js">// Little bouncing robots drawn on a canvas
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const bots = [];
+
+function resize() { c.width = innerWidth; c.height = innerHeight; }
+addEventListener('resize', resize);
+resize();
+
+function addBot(x, y) {
+  bots.push({ x, y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, r: 18 + Math.random() * 14 });
+}
+for (let i = 0; i < 6; i++) addBot(Math.random() * c.width, Math.random() * c.height);
+c.addEventListener('click', (e) => addBot(e.clientX, e.clientY));
+
+function drawBot(b, t) {
+  ctx.fillStyle = '#eef2f8';
+  ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();      // head
+  ctx.fillStyle = '#18203a';
+  ctx.beginPath(); ctx.ellipse(b.x, b.y, b.r * 0.72, b.r * 0.5, 0, 0, Math.PI * 2); ctx.fill(); // visor
+  const blink = Math.sin(t / 300 + b.r) > 0.97 ? 0.15 : 1;
+  ctx.fillStyle = '#45e6ff';
+  ctx.fillRect(b.x - b.r * 0.35, b.y - b.r * 0.15, b.r * 0.18, b.r * 0.35 * blink);
+  ctx.fillRect(b.x + b.r * 0.17, b.y - b.r * 0.15, b.r * 0.18, b.r * 0.35 * blink);
+}
+
+function loop(t) {
+  ctx.clearRect(0, 0, c.width, c.height);
+  for (const b of bots) {
+    b.x += b.vx; b.y += b.vy;
+    if (b.x < b.r || b.x > c.width - b.r) b.vx *= -1;
+    if (b.y < b.r || b.y > c.height - b.r) b.vy *= -1;
+    drawBot(b, t);
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+console.log('Bots on screen:', bots.length);</script>
+<script type="text/plain" id="tpl-risk-js">// Position size: how many shares can I buy if I only
+// want to risk a small part of my account on one trade?
+const account = 2000;     // account size in dollars
+const riskPercent = 1;    // risk 1% per trade
+const entry = 48.2;       // price you buy at
+const stop = 46.9;        // stop-loss price
+
+const riskDollars = (account * riskPercent) / 100;
+const riskPerShare = entry - stop;
+const shares = Math.floor(riskDollars / riskPerShare);
+
+console.log('Max risk on this trade: $' + riskDollars.toFixed(2));
+console.log('Risk per share: $' + riskPerShare.toFixed(2));
+console.log('Buy ' + shares + ' shares (about $' + (shares * entry).toFixed(2) + ')');</script>
+<script type="text/plain" id="tpl-compound-py"># Compound interest: watch money grow
+start = 1000      # starting amount ($)
+monthly = 100     # added every month ($)
+rate = 0.08       # 8% average yearly return (an example, not a promise)
+years = 10
+
+balance = start
+print(f"{'Year':>4} | {'Balance':>12} | {'You put in':>10}")
+print("-" * 33)
+for year in range(1, years + 1):
+    for month in range(12):
+        balance += monthly
+        balance *= 1 + rate / 12
+    put_in = start + monthly * 12 * year
+    print(f"{year:>4} | ${balance:>11,.2f} | ${put_in:>9,}")
+
+print(f"\nGrowth from interest: ${balance - put_in:,.2f}")</script>
+<script type="text/plain" id="tpl-sma-py"># Moving-average crossover on made-up prices
+prices = [101, 102, 104, 103, 105, 108, 110, 109, 107, 106,
+          104, 103, 105, 107, 111, 114, 113, 116, 118, 117]
+
+def sma(data, n):
+    """Simple moving average; None until there are n prices."""
+    return [None if i < n - 1 else sum(data[i - n + 1:i + 1]) / n
+            for i in range(len(data))]
+
+fast, slow = sma(prices, 3), sma(prices, 7)
+for day, (p, f, s) in enumerate(zip(prices, fast, slow), 1):
+    if f is None or s is None:
+        continue
+    signal = "BUY " if f > s else "SELL"
+    bar = "#" * (p - 95)
+    print(f"Day {day:2}: {p:4}  fast {f:6.1f}  slow {s:6.1f}  {signal}  {bar}")</script>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+const esc = s => s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function ago(ts){const s=(Date.now()-ts)/1000; if(s<45)return'just now'; if(s<3600)return Math.round(s/60)+'m ago'; if(s<86400)return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'}
+const rnd = mulberry32(20261021);
+
+/* ================= data ================= */
+const R = 11;              // big hex radius
+const DECK_Y = 1.05;
+const SQ3 = Math.sqrt(3);
+const REPOS = [
+  {id:'bot-oasis', name:'bot-oasis',       color:'#3d7bff', q:0, r:0,  cmd:'npm test',               files:['src/world/sky.js','src/world/clock.js','src/ui/sidebar.js','src/agents/bridge.js','src/world/bots.js']},
+  {id:'glowfall',  name:'glowfall-game',   color:'#38c96b', q:1, r:-1, cmd:'npm run build',          files:['src/game/player.ts','src/levels/level3.json','src/render/glow.ts','src/game/boss.ts']},
+  {id:'trading',   name:'trading-journal', color:'#f2c230', q:-1,r:0,  cmd:'pytest -q',              files:['journal/trades.py','stats/winrate.py','app/routes.py','app/templates/chart.html']},
+  {id:'chess',     name:'chess-club-site', color:'#b16cff', q:0, r:1,  cmd:'npm run lint',           files:['pages/index.html','pages/schedule.html','styles/main.css','pages/join.html']},
+  {id:'aiml',      name:'ai-ml-notes',     color:'#ff7a3d', q:1, r:0,  cmd:'python nn/train.py --epochs 3', files:['nn/layers.py','nn/train.py','notebooks/mnist.ipynb','nn/optim.py']},
+  {id:'it-support', name:'it-support-study', color:'#2ec4d6', q:0, r:-1, cmd:'python scripts/system_check.py', files:['notes/networking.md','notes/hardware.md','labs/troubleshooting.md','scripts/system_check.py','flashcards/ports.json']},
+];
+const GENERIC_FILES = ['src/main.js','src/app.js','README.md','tests/app.test.js'];
+try{ for (const c of JSON.parse(localStorage.getItem('bo.repos')||'[]')) if (c && c.id && c.name && Number.isFinite(c.q) && Number.isFinite(c.r)) REPOS.push({id:c.id, name:String(c.name).slice(0,40), color:/^#[0-9a-f]{6}$/i.test(c.color)?c.color:'#3d7bff', q:c.q, r:c.r, cmd:'npm test', files:GENERIC_FILES, custom:true}); }catch{}
+for (const c of REPOS.filter(p=>p.custom)) if (REPOS.some(p=>p!==c && p.q===c.q && p.r===c.r)){ const f = freeAxial(); if (f){ c.q = f.q; c.r = f.r; saveCustom(); } }
+function prepRepo(p){
+  p.path = '~/dev/' + p.name;
+  p.cx = SQ3*R*(p.q + p.r/2); p.cz = 1.5*R*p.r;
+  p.col = new THREE.Color(p.color);
+}
+REPOS.forEach(prepRepo);
+const repoById = Object.fromEntries(REPOS.map(r=>[r.id,r]));
+
+const now=Date.now(), MIN=60e3, HR=36e5, DAY=864e5;
+const SEED = [
+  ['bot-oasis','Time-of-day auto-adjustment','working',.45, now-1*MIN],
+  ['bot-oasis','Oasis review','working',.15, now-4*MIN],
+  ['bot-oasis','Connect real agents to the world','review',1, now-38*MIN],
+  ['bot-oasis','Failed to fetch error on load','idle',1, now-2*DAY],
+  ['bot-oasis','Bots should walk around buildings','idle',1, now-3*DAY],
+  ['bot-oasis','Untitled thread','idle',1, now-6*DAY],
+  ['glowfall','Level 3 boss fight','working',.6, now-2*MIN],
+  ['glowfall','Glow trail effect for the player','review',1, now-3*HR],
+  ['glowfall','Publish build to itch.io','idle',1, now-4*DAY],
+  ['glowfall','Roblox port notes','idle',1, now-9*DAY],
+  ['trading','Win-rate chart by setup','working',.3, now-3*MIN],
+  ['trading','Import trades from CSV','idle',1, now-1*DAY],
+  ['trading','Risk per trade calculator','idle',1, now-5*DAY],
+  ['chess','Meeting schedule page','review',1, now-55*MIN],
+  ['chess','Sign-up form for new members','idle',1, now-2*DAY],
+  ['chess','Ladder rankings table','idle',1, now-8*DAY],
+  ['aiml','Train a tiny network on MNIST','working',.7, now-20e3],
+  ['aiml','Explain backprop with a diagram','idle',1, now-3*DAY],
+  ['aiml','Gradient descent notebook','idle',1, now-28*DAY],
+  ['it-support','Subnetting practice quiz','working',.35, now-2*MIN],
+  ['it-support','Troubleshooting checklist for a slow PC','review',1, now-50*MIN],
+  ['it-support','Networking notes: DNS, DHCP and IP addresses','idle',1, now-1*DAY],
+  ['it-support','Python script that checks disk space','idle',1, now-4*DAY],
+];
+let tid = 0;
+const threads = [];
+function planSteps(t, salt=''){
+  const repo = repoById[t.repo]; const r = mulberry32(hash(t.id+salt));
+  const fs = repo.files; const i = Math.floor(r()*fs.length);
+  const a = fs[i], b = fs[(i+1+Math.floor(r()*(fs.length-1)))%fs.length];
+  const kw = (t.title.split(' ').find(w=>w.length>4)||t.title.split(' ')[0]).toLowerCase().replace(/[^a-z0-9-]/g,'');
+  const n = 6+Math.floor(r()*40), m = Math.floor(r()*14), n2 = 3+Math.floor(r()*20), tests = 8+Math.floor(r()*30);
+  return [
+    {k:'think', text:`Reading the request and finding where this lives in ${repo.name}.`},
+    {k:'tool', tool:'Read', text:a},
+    {k:'tool', tool:'Search', text:`"${kw}" across the project`},
+    {k:'tool', tool:'Read', text:b},
+    {k:'think', text:`Plan: change ${a.split('/').pop()} first, then update ${b.split('/').pop()} to match.`},
+    {k:'tool', tool:'Edit', text:`${a}   +${n} −${m}`},
+    {k:'tool', tool:'Edit', text:`${b}   +${n2} −${Math.floor(m/2)}`},
+    {k:'tool', tool:'Run', text:`${repo.cmd}  ·  ${tests} passed`},
+    {k:'agent', text:`Done with “${t.title}”. I changed ${a} and ${b}, and the checks pass. Open the diff when you're ready to review it.`},
+  ];
+}
+function makeThread(repo, title, status, progress, updated, prompt){
+  const t = {id:'t'+(++tid), repo, title, status, progress, updated, msgs:[], shown:0, dur: 70+rnd()*90};
+  t.msgs.push({k:'user', text: prompt || `Can you work on this: ${title.toLowerCase()}?`});
+  t.steps = planSteps(t);
+  const target = status==='working' ? Math.floor(progress*t.steps.length) : t.steps.length;
+  while (t.shown < target) t.msgs.push(t.steps[t.shown++]);
+  return t;
+}
+for (const s of SEED) threads.push(makeThread(...s));
+try{ for (const r of JSON.parse(localStorage.getItem('bo.threads')||'[]')){
+  if (!r || !r.id || !REPOS.some(p=>p.id===r.repo)) continue;
+  const t = {id:String(r.id), repo:r.repo, title:String(r.title||'Untitled'), status: r.status==='working' ? 'review' : (['review','idle'].includes(r.status) ? r.status : 'review'), progress:1, updated:r.updated||Date.now(), msgs:Array.isArray(r.msgs) ? r.msgs.filter(m=>m && typeof m.text==='string') : [], shown:0, steps:[], dur:60, real:true, parent:r.parent||null, depth:r.depth||0};
+  if (r.status==='working') t.msgs.push({k:'agent', text:'(This stopped when the page was closed. Reply to pick it back up.)'});
+  threads.push(t);
+} }catch{}
+
+/* ================= renderer / scene ================= */
+const host = $('#scene');
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(host.clientWidth, host.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xf0dcbc, 140, 640);
+const camera = new THREE.PerspectiveCamera(36, host.clientWidth/host.clientHeight, .5, 3000);
+const HOME_POS = innerWidth<760 ? new THREE.Vector3(44, 44, 70) : new THREE.Vector3(37, 31, 54), HOME_TGT = innerWidth<760 ? new THREE.Vector3(4,0,0) : new THREE.Vector3(6, 0, -3);
+camera.position.copy(HOME_POS);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.copy(HOME_TGT);
+controls.enableDamping = true; controls.dampingFactor = .08;
+controls.maxPolarAngle = 1.3; controls.minDistance = 12; controls.maxDistance = 230;
+controls.autoRotateSpeed = .5;
+
+/* lights */
+const hemi = new THREE.HemisphereLight(0xdbe8ff, 0xc99a68, 1.3); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 3);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera, {left:-48, right:48, top:48, bottom:-48, near:10, far:260});
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = .04;
+scene.add(sun, sun.target);
+const lamps = [];
+function addLamp(p){ const l = new THREE.PointLight(0xffc98a, 0, 34, 1.1); l.position.set(p.cx, 6, p.cz); scene.add(l); lamps.push(l); p.lamp = l; }
+REPOS.forEach(addLamp);
+
+/* sky */
+const skyU = { top:{value:new THREE.Color()}, bot:{value:new THREE.Color()}, sunCol:{value:new THREE.Color()}, sunDir:{value:new THREE.Vector3(0,1,0)} };
+const sky = new THREE.Mesh(new THREE.SphereGeometry(1400, 32, 16), new THREE.ShaderMaterial({
+  uniforms: skyU, side: THREE.BackSide, depthWrite:false, fog:false,
+  vertexShader:`varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader:`uniform vec3 top; uniform vec3 bot; uniform vec3 sunCol; uniform vec3 sunDir; varying vec3 vP;
+    void main(){ vec3 d = normalize(vP); float h = d.y;
+      vec3 c = mix(bot, top, smoothstep(-0.02, 0.55, h));
+      float s = max(dot(d, normalize(sunDir)), 0.);
+      float up = smoothstep(-0.08, 0.05, sunDir.y);
+      c += sunCol * (pow(s, 900.)*2.2 + pow(s, 18.)*.35) * up;
+      gl_FragColor = vec4(c, 1.); }`
+}));
+sky.renderOrder = -1; scene.add(sky);
+
+/* stars */
+const starGeo = new THREE.BufferGeometry(); { const a=[]; for(let i=0;i<900;i++){ const th=rnd()*Math.PI*2, ph=Math.acos(rnd()*.95); a.push(Math.sin(ph)*Math.cos(th)*1300, Math.cos(ph)*1300, Math.sin(ph)*Math.sin(th)*1300); } starGeo.setAttribute('position', new THREE.Float32BufferAttribute(a,3)); }
+const starMat = new THREE.PointsMaterial({color:0xffffff, size:1.6, sizeAttenuation:false, transparent:true, opacity:0, fog:false, depthWrite:false});
+const stars = new THREE.Points(starGeo, starMat); scene.add(stars);
+
+/* desert ground */
+{
+  const g = new THREE.PlaneGeometry(1500, 1500, 240, 240); g.rotateX(-Math.PI/2);
+  const pos = g.attributes.position, cols = [];
+  const cA = new THREE.Color('#e6b984'), cB = new THREE.Color('#f3d3a2'), cC = new THREE.Color('#c99462'), tmp = new THREE.Color();
+  for (let i=0;i<pos.count;i++){
+    const x=pos.getX(i), z=pos.getZ(i), d=Math.hypot(x,z);
+    const amp = THREE.MathUtils.smoothstep(d, 52, 170) * (7 + THREE.MathUtils.smoothstep(d,200,600)*26);
+    const n = Math.sin(x*.018 + z*.011)*.55 + Math.sin(x*.041 - z*.027 + 1.3)*.3 + Math.sin(z*.063 + x*.009)*.15;
+    const ripple = Math.sin(x*.35 + z*.12)*.06 * (1-THREE.MathUtils.smoothstep(d,40,120));
+    const y = amp*n + ripple - .02;
+    pos.setY(i, y);
+    const k = clamp(n*.5+.5,0,1);
+    tmp.copy(cC).lerp(cA, clamp(k*1.6,0,1)).lerp(cB, clamp((k-.6)*2.2,0,1));
+    cols.push(tmp.r,tmp.g,tmp.b);
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cols,3));
+  g.computeVertexNormals();
+  const ground = new THREE.Mesh(g, new THREE.MeshStandardMaterial({vertexColors:true, roughness:1, flatShading:false}));
+  ground.receiveShadow = true; scene.add(ground);
+}
+
+/* distant skyline, hazy like a desert city on the horizon */
+{
+  const m = new THREE.MeshStandardMaterial({color:0xcaa98c, roughness:1, flatShading:true});
+  const grp = new THREE.Group();
+  for (let i=0;i<34;i++){
+    const h = 18 + Math.pow(rnd(),2)*80, w = 6 + rnd()*10;
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), m);
+    b.position.set(-260 + i*16 + rnd()*8, h/2 - 4, -560 - rnd()*60); grp.add(b);
+  }
+  const spire = new THREE.Mesh(new THREE.CylinderGeometry(.6, 9, 190, 6), m); spire.position.set(30, 91, -590); grp.add(spire);
+  const spire2 = new THREE.Mesh(new THREE.CylinderGeometry(2, 7, 110, 4), m); spire2.position.set(-70, 51, -575); grp.add(spire2);
+  scene.add(grp);
+}
+
+/* ================= materials & geometry cache ================= */
+const mat = (c,o={}) => new THREE.MeshStandardMaterial({color:c, roughness:.68, flatShading:true, ...o});
+const M = {
+  white: mat(0xeef2f8), off: mat(0xd9e1ec), blue: mat(0x3d8bff), navy: mat(0x22308f,{roughness:.32,metalness:.35}),
+  red: mat(0xe5483f), brown: mat(0xb9654b), orange: mat(0xe8925f), salmon: mat(0xd98b74), dark: mat(0x2c2836),
+  green: mat(0x49c76a), pole: mat(0xc9d2de),
+  glass: new THREE.MeshStandardMaterial({color:0x2b3a5c, emissive:0xffc06a, emissiveIntensity:0, roughness:.35, flatShading:true}),
+  visor: mat(0x18203a,{roughness:.18, metalness:.5}),
+  eye: new THREE.MeshStandardMaterial({color:0x8ff8ff, emissive:0x45e6ff, emissiveIntensity:1}),
+  spark: new THREE.MeshBasicMaterial({color:0xfff27a, toneMapped:false}),
+  hit: new THREE.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false}),
+};
+const GC = new Map();
+const cache = (k,f)=>{ if(!GC.has(k)) GC.set(k,f()); return GC.get(k); };
+const box = (w,h,d)=>cache(`b${w},${h},${d}`, ()=>new THREE.BoxGeometry(w,h,d));
+const cyl = (a,b,h,s=8)=>cache(`c${a},${b},${h},${s}`, ()=>new THREE.CylinderGeometry(a,b,h,s));
+const sph = (r,w=12,h=9)=>cache(`s${r},${w},${h}`, ()=>new THREE.SphereGeometry(r,w,h));
+const hemiG = r=>cache(`h${r}`, ()=>new THREE.SphereGeometry(r,14,7,0,Math.PI*2,0,Math.PI/2));
+const cap = (r,l)=>cache(`k${r},${l}`, ()=>new THREE.CapsuleGeometry(r,l,4,8));
+function mesh(geo, m, x=0, y=0, z=0, shadow=true){ const o = new THREE.Mesh(geo, m); o.position.set(x,y,z); o.castShadow = shadow; o.receiveShadow = true; return o; }
+
+/* ================= building kit ================= */
+const BUILD = {
+  pod(){ const g = new THREE.Group();
+    g.add(mesh(cyl(1.05,1.15,.9),M.white,0,.45,0));
+    g.add(mesh(cyl(1.17,1.17,.14),M.glass,0,.3,0,false));
+    g.add(mesh(cyl(1.09,1.09,.16),M.blue,0,.66,0,false));
+    g.add(mesh(cyl(.82,1.0,.26),M.white,0,1.03,0));
+    const p = mesh(box(1.05,.08,.78),M.navy,0,1.27,0); p.rotation.x=-.35; g.add(p);
+    g.add(mesh(box(.42,.52,.12),M.dark,0,.26,1.1,false));
+    g.userData.h = 1.4; return g; },
+  dome(){ const g = new THREE.Group();
+    g.add(mesh(cyl(1.3,1.36,.72),M.white,0,.36,0));
+    g.add(mesh(cyl(1.33,1.33,.12),M.glass,0,.46,0,false));
+    g.add(mesh(hemiG(1.16),M.brown,0,.72,0));
+    g.add(mesh(cyl(.13,.13,.28,6),M.white,0,1.98,0));
+    g.add(mesh(box(.5,.52,.16),M.dark,0,.26,1.32,false));
+    g.userData.h = 2.0; return g; },
+  solar(){ const g = new THREE.Group();
+    for (let i=0;i<3;i++) for (let j=0;j<2;j++){
+      const x=i*1.0-1, z=j*.95-.47;
+      g.add(mesh(cyl(.04,.04,.7,5),M.pole,x,.35,z,false));
+      const p = mesh(box(.92,.06,.66),M.navy,x,.74,z); p.rotation.x=-.45; g.add(p);
+    }
+    g.userData.h = 1; return g; },
+  crates(){ const g = new THREE.Group(); const n = 3+Math.floor(rnd()*4);
+    const spots=[[-.34,-.34],[.34,-.34],[-.34,.34],[.34,.34]];
+    for (let i=0;i<n;i++){ const [x,z]=spots[i%4]; const lvl=Math.floor(i/4);
+      g.add(mesh(box(.62,.6,.62),M.red,x,.3+lvl*.62,z)); g.add(mesh(box(.64,.07,.64),M.white,x,.62+lvl*.62,z,false)); }
+    g.userData.h = n>4?1.3:.7; return g; },
+  tower(){ const g = new THREE.Group();
+    for (const [x,z] of [[-.5,-.5],[.5,-.5],[-.5,.5],[.5,.5]]) g.add(mesh(box(.13,2,.13),M.red,x,1,z));
+    g.add(mesh(box(1.1,.08,.08),M.white,0,.8,.5,false)); g.add(mesh(box(1.1,.08,.08),M.white,0,.8,-.5,false));
+    g.add(mesh(box(1.3,.8,1.3),M.white,0,2.35,0));
+    g.add(mesh(box(1.33,.16,1.33),M.red,0,2.1,0,false));
+    g.add(mesh(box(.9,.26,.05),M.glass,0,2.45,.66,false));
+    g.add(mesh(box(.6,.3,.6),M.blue,0,2.9,0));
+    g.userData.h = 3.05; return g; },
+  antenna(){ const g = new THREE.Group();
+    g.add(mesh(cyl(.07,.1,2.2,6),M.pole,0,1.1,0));
+    const d = mesh(cyl(.62,.1,.28,10),M.white,0,2.15,.1); d.rotation.x=.7; g.add(d);
+    g.add(mesh(sph(.08,8,6),M.red,0,2.4,.3,false));
+    g.add(mesh(cyl(.45,.5,.14,8),M.off,0,.07,0));
+    g.userData.h = 2.5; return g; },
+  plants(){ const g = new THREE.Group(); const n=3+Math.floor(rnd()*3);
+    for (let i=0;i<n;i++){ const s=.28+rnd()*.14; g.add(mesh(box(s,s,s), i===0?M.red:M.green, (rnd()-.5)*.9, s/2+(i>2?s:0), (rnd()-.5)*.9)); }
+    g.userData.h = .6; return g; },
+  lander(){ const g = new THREE.Group();
+    g.add(mesh(sph(1.75,16,12),M.white,0,3.4,0));
+    g.add(mesh(cyl(1.77,1.77,.26,16),M.glass,0,3.25,0,false));
+    const c = mesh(sph(.72,12,8),M.red,0,5.0,0); c.scale.y=.75; g.add(c);
+    for (let i=0;i<3;i++){ const a=i/3*Math.PI*2; const leg = mesh(box(.16,2.8,.16),M.pole,Math.cos(a)*1.4,1.35,Math.sin(a)*1.4); leg.rotation.set(Math.sin(a)*.3,0,-Math.cos(a)*.3); g.add(leg);
+      g.add(mesh(cyl(.38,.42,.12,8),M.dark,Math.cos(a)*1.85,.06,Math.sin(a)*1.85)); }
+    for (let k=0;k<6;k++) g.add(mesh(box(.5,.05,.05),M.pole,0,.35+k*.36,1.9,false));
+    g.add(mesh(box(.05,2.2,.05),M.pole,-.25,1.2,1.9,false)); g.add(mesh(box(.05,2.2,.05),M.pole,.25,1.2,1.9,false));
+    g.userData.h = 5.4; return g; },
+};
+
+/* ================= platforms ================= */
+const decks = [];
+const repoLabels = {};
+function inHex(x,z,r){ const ax=Math.abs(x), az=Math.abs(z); return ax <= r*.8660254 && az + ax*.5773503 <= r; }
+function buildPlatform(p){
+  const g = new THREE.Group(); g.position.set(p.cx, 0, p.cz); p.group = g;
+  const base = mesh(cyl(R-.15, R+.1, .9, 6), M.salmon, 0, .45, 0); g.add(base);
+  const rimMat = new THREE.MeshStandardMaterial({color:p.col, emissive:p.col, emissiveIntensity:.25, roughness:.5, flatShading:true});
+  g.add(mesh(cyl(R-.15, R-.15, .14, 6), rimMat, 0, .96, 0, false));
+  const deckMat = mat(0x3b3548, {roughness:.85});
+  const deck = mesh(cyl(R-.62, R-.62, .14, 6), deckMat, 0, .98, 0, false); deck.userData.repo = p.id; g.add(deck);
+  // floor tile lines (triangle lattice)
+  const S = 2.75, pts=[];
+  const L = (i,j)=>[i*S + (j&1? S/2:0) + S/2, j*S*.8660254 + S*.2887];
+  for (let j=-7;j<=7;j++) for (let i=-7;i<=7;i++){
+    const a=L(i,j); const nb=[L(i+1,j), (j&1)? L(i+1,j+1):L(i,j+1), (j&1)? L(i,j+1):L(i-1,j+1)];
+    for (const b of nb) if (inHex(a[0],a[1],R-.75) && inHex(b[0],b[1],R-.75)) pts.push(a[0],DECK_Y+.006,a[1], b[0],DECK_Y+.006,b[1]);
+  }
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({color:0x5a5270, transparent:true, opacity:.75})));
+  scene.add(g);
+  p.deck = deck; p.deckMat = deckMat; p.rimMat = rimMat;
+  decks.push(deck);
+  // slots
+  p.slots = [];
+  for (let j=-7;j<=7;j++) for (let i=-7;i<=7;i++){
+    const x = i*S + (j&1? S/2:0), z = j*S*.8660254;
+    if (inHex(x,z,R-2.05)) p.slots.push({x:p.cx+x, z:p.cz+z, use:null, d:Math.hypot(x,z)});
+  }
+  const r2 = mulberry32(hash(p.id));
+  p.slots.sort((a,b)=>(a.d + r2()*4) - (b.d + r2()*4));
+  // label
+  const el = document.createElement('div'); el.className='rlabel'; el.innerHTML = `<i style="background:${p.color}"></i>${esc(p.name)}`;
+  $('#labels').appendChild(el); repoLabels[p.id] = el;
+}
+REPOS.forEach(buildPlatform);
+
+/* landers on the sand */
+const landers = [];
+for (const [x,z,ry] of [[-15,23,.4],[35,-19,-.8],[-28,-21,1.9]]){ const l = BUILD.lander(); l.position.set(x,0,z); l.rotation.y=ry; scene.add(l); landers.push(l); }
+function clearLanders(){ for (const l of landers) l.visible = !REPOS.some(p=>inHex(l.position.x-p.cx, l.position.z-p.cz, R+2.5)); }
+clearLanders();
+
+/* floating rocks + dust */
+const rocks = [];
+{ const rm = mat(0x6e4b3b);
+  for (let i=0;i<55;i++){ const s=.25+rnd()*.8; const r = mesh(cache('dd'+(i%5),()=>new THREE.DodecahedronGeometry(1,0)), rm, 0,0,0);
+    r.scale.set(s, s*(.6+rnd()*.5), s); const a=rnd()*Math.PI*2, d=25+rnd()*95;
+    r.position.set(Math.cos(a)*d, 6+rnd()*34, Math.sin(a)*d); r.userData = {vy:.15+rnd()*.35, rx:rnd()*.6, ry:rnd()*.6, base:r.position.y, ph:rnd()*6};
+    scene.add(r); rocks.push(r); }
+}
+const dustGeo = new THREE.BufferGeometry(); { const a=[]; for(let i=0;i<500;i++) a.push((rnd()-.5)*200, rnd()*14, (rnd()-.5)*200); dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(a,3)); }
+const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({color:0xf2d6a8, size:.22, transparent:true, opacity:.55, depthWrite:false}));
+scene.add(dust);
+
+/* decoration on each platform */
+const DECOR = ['pod','pod','pod','dome','dome','solar','solar','solar','crates','crates','tower','antenna','plants','plants'];
+const threadCount = id => threads.filter(t=>t.repo===id).length;
+function decorate(p){
+  const reserve = threadCount(p.id) + 6;   // space for threads + new ones
+  const nDecor = Math.min(17, p.slots.length - reserve - 6);
+  // decorations go in outer slots so stations cluster near the middle
+  const outer = p.slots.slice(reserve);
+  for (let i=0;i<nDecor;i++){
+    const s = outer[Math.floor(i*outer.length/nDecor)];
+    const kind = DECOR[Math.floor(rnd()*DECOR.length)];
+    const b = BUILD[kind](); b.position.set(s.x + (rnd()-.5)*.3, DECK_Y, s.z + (rnd()-.5)*.3); b.rotation.y = Math.floor(rnd()*6)*Math.PI/3;
+    p.group.attach(b); s.use = 'decor';
+  }
+}
+REPOS.forEach(decorate);
+
+/* ================= beacons (sprites) ================= */
+function beaconTex(kind){
+  const c = document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
+  const col = kind==='working' ? '#3ff0b4' : kind==='ask' ? '#b98cff' : '#ffbf3f';
+  x.shadowColor = col; x.shadowBlur = 20;
+  x.beginPath(); x.roundRect(20,20,88,88,22); x.fillStyle='rgba(10,28,32,.88)'; x.fill();
+  x.lineWidth=6; x.strokeStyle=col; x.stroke(); x.shadowBlur=0;
+  x.strokeStyle=col; x.fillStyle=col; x.lineWidth=9; x.lineCap='round'; x.lineJoin='round';
+  if (kind==='working'){ x.beginPath(); x.moveTo(47,81); x.lineTo(80,48); x.moveTo(56,46); x.lineTo(82,46); x.lineTo(82,72); x.stroke(); }
+  else if (kind==='ask'){ x.font = '900 64px system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('?', 64, 68); }
+  else { x.fillRect(58,38,12,34); x.beginPath(); x.arc(64,86,7,0,Math.PI*2); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const BEACON = { working: new THREE.SpriteMaterial({map:beaconTex('working'), toneMapped:false, fog:false}), review: new THREE.SpriteMaterial({map:beaconTex('review'), toneMapped:false, fog:false}), ask: new THREE.SpriteMaterial({map:beaconTex('ask'), toneMapped:false, fog:false}) };
+
+/* ================= stations ================= */
+const stations = new Map();   // thread id -> station
+const hitMeshes = [];
+function freeSlot(repo){ return repo.slots.find(s=>!s.use); }
+function makeStation(t, slot, animate=false){
+  const repo = repoById[t.repo];
+  const g = new THREE.Group(); g.position.set(slot.x, DECK_Y, slot.z);
+  g.rotation.y = Math.floor(rnd()*6)*Math.PI/3;
+  const padMat = new THREE.MeshStandardMaterial({color:0xe8925f, emissive:repo.col, emissiveIntensity:0, flatShading:true, roughness:.6});
+  const pad = mesh(cyl(1.55,1.68,.16,6), padMat, 0,.08,0); g.add(pad);
+  const kind = ['pod','dome','tower'][hash(t.id+t.title)%3];
+  const b = BUILD[kind](); b.position.y=.16; g.add(b);
+  const h = b.userData.h + .16;
+  const scaf = new THREE.Group();
+  for (const [x,z] of [[-1.25,-1.25],[1.25,-1.25],[-1.25,1.25],[1.25,1.25]]) scaf.add(mesh(cyl(.035,.035,h+.7,5),M.pole,x,(h+.7)/2,z,false));
+  for (const z of [-1.25,1.25]) scaf.add(mesh(box(2.5,.05,.05),M.pole,0,h+.62,z,false));
+  g.add(scaf);
+  const beacon = new THREE.Sprite(BEACON.working); beacon.scale.set(1.25,1.25,1); beacon.position.set(1.3, h+1.1, 0); g.add(beacon);
+  const spark = mesh(sph(.07,6,5), M.spark, 0, .6, 1.3, false); g.add(spark);
+  const hit = new THREE.Mesh(cyl(1.7,1.7,h+1.6,8), M.hit); hit.position.y = (h+1.6)/2; hit.userData.tid = t.id; g.add(hit); hitMeshes.push(hit);
+  scene.add(g);
+  slot.use = t.id;
+  const st = {t, g, b, pad, padMat, scaf, beacon, spark, hit, h, slot, build: animate?0:1, gone:false, kill:0};
+  if (animate) b.scale.set(1,.02,1);
+  stations.set(t.id, st);
+  return st;
+}
+function removeStation(st){
+  st.gone = true; st.kill = 0;
+  hitMeshes.splice(hitMeshes.indexOf(st.hit),1);
+  stations.delete(st.t.id);
+  st.slot.use = null;
+  dying.push(st);
+}
+const dying = [];
+
+/* ================= bots ================= */
+const bots = [];
+function makeBot(){
+  const g = new THREE.Group();
+  g.add(mesh(cap(.2,.24),M.white,0,.56,0));
+  g.add(mesh(box(.28,.3,.16),M.off,0,.6,-.2));
+  g.add(mesh(sph(.25,14,10),M.white,0,1.0,0));
+  const v = mesh(sph(.2,14,10),M.visor,0,1.0,.1,false); v.scale.set(1,.8,.62); g.add(v);
+  g.add(mesh(box(.06,.09,.02),M.eye,-.075,1.02,.235,false)); g.add(mesh(box(.06,.09,.02),M.eye,.075,1.02,.235,false));
+  g.add(mesh(cyl(.014,.014,.2,4),M.pole,0,1.33,0,false)); g.add(mesh(sph(.045,6,5),M.red,0,1.44,0,false));
+  const limb = (x,y,geo,oy)=>{ const p = new THREE.Group(); p.position.set(x,y,0); p.add(mesh(geo,M.white,0,oy,0)); g.add(p); return p; };
+  const legL = limb(-.1,.32,cyl(.075,.07,.3,6),-.15), legR = limb(.1,.32,cyl(.075,.07,.3,6),-.15);
+  const armL = limb(-.27,.74,cap(.06,.2),-.15), armR = limb(.27,.74,cap(.06,.2),-.15);
+  g.scale.setScalar(.88);
+  scene.add(g);
+  return {g, legL, legR, armL, armR};
+}
+function randomSpot(repo){
+  const free = repo.slots.filter(s=>!s.use);
+  const s = free.length ? free[Math.floor(Math.random()*free.length)] : repo.slots[Math.floor(Math.random()*repo.slots.length)];
+  return new THREE.Vector3(s.x + (Math.random()-.5)*1.2, DECK_Y, s.z + (Math.random()-.5)*1.2);
+}
+function spawnBot(repo, pos){
+  const b = makeBot(); const p = pos || randomSpot(repo);
+  b.g.position.copy(p); b.g.rotation.y = Math.random()*Math.PI*2;
+  Object.assign(b, {repo, state:'pause', wait:Math.random()*3, target:p.clone(), station:null, phase:Math.random()*10, speed:1.4+Math.random()*.6, slotIdx:0});
+  bots.push(b); return b;
+}
+function workSpot(st, idx){
+  const a = st.g.rotation.y + (idx? .95 : -.95);
+  return new THREE.Vector3(st.g.position.x + Math.sin(a)*1.85, DECK_Y, st.g.position.z + Math.cos(a)*1.85);
+}
+function assignWorkers(st){
+  const repo = repoById[st.t.repo];
+  const have = bots.filter(b=>b.station===st).length;
+  for (let k=have;k<2;k++){
+    let pick = null, best = 1e9;
+    for (const b of bots) if (b.repo===repo && !b.station){ const d=b.g.position.distanceTo(st.g.position); if(d<best){best=d;pick=b;} }
+    if (!pick || bots.filter(b=>b.repo===repo && !b.station).length < 3){
+      const a = Math.random()*Math.PI*2; pick = spawnBot(repo, new THREE.Vector3(repo.cx+Math.cos(a)*(R-2.4), DECK_Y, repo.cz+Math.sin(a)*(R-2.4)));
+    }
+    pick.station = st; pick.slotIdx = k; pick.state='goto'; pick.target = workSpot(st,k);
+  }
+}
+function releaseWorkers(st){ for (const b of bots) if (b.station===st){ b.station=null; b.state='pause'; b.wait=.5+Math.random()*2; } }
+
+for (const p of REPOS) for (let i=0;i<6;i++) spawnBot(p);
+
+/* build stations for seed threads */
+for (const t of threads){ const repo = repoById[t.repo]; const s = freeSlot(repo); if (s) makeStation(t, s); }
+for (const st of stations.values()) if (st.t.status==='working') assignWorkers(st);
+for (const b of bots) if (b.station){ b.g.position.copy(b.target); b.state='work'; }
+
+/* ================= time of day ================= */
+const K = [
+  {h:0,    top:'#070b24', bot:'#241d45', sun:'#9fb4ff', sunI:.55, sky:'#3a4a8c', gnd:'#2a2030', hemiI:.6,  night:1},
+  {h:4.8,  top:'#0d1438', bot:'#3a2a55', sun:'#9fb4ff', sunI:.55, sky:'#3a4a8c', gnd:'#2a2030', hemiI:.62, night:1},
+  {h:6,    top:'#4b5fa8', bot:'#f6a77c', sun:'#ffb07a', sunI:1.5, sky:'#9aa6d6', gnd:'#a0705a', hemiI:.95, night:.35},
+  {h:8,    top:'#6fa6e6', bot:'#f2d3a8', sun:'#fff0d8', sunI:2.7, sky:'#cfe0ff', gnd:'#c49565', hemiI:1.25, night:0},
+  {h:12,   top:'#5b9fe8', bot:'#f0dcbc', sun:'#ffffff', sunI:3.0, sky:'#dbe8ff', gnd:'#c99a68', hemiI:1.35, night:0},
+  {h:16.5, top:'#6b9cdc', bot:'#f1c996', sun:'#ffe6bf', sunI:2.7, sky:'#d6e2ff', gnd:'#c49060', hemiI:1.25, night:0},
+  {h:18.3, top:'#5a5596', bot:'#f2a274', sun:'#ffb07a', sunI:1.8, sky:'#c0b0dc', gnd:'#a07458', hemiI:1.05, night:.3},
+  {h:19.6, top:'#1e1f52', bot:'#7a4466', sun:'#c08aff', sunI:.8,  sky:'#5a4f90', gnd:'#3a2838', hemiI:.7,  night:.85},
+  {h:21,   top:'#090d2a', bot:'#2a2048', sun:'#9fb4ff', sunI:.55, sky:'#3a4a8c', gnd:'#2a2030', hemiI:.6,  night:1},
+];
+K.push({...K[0], h:24});
+for (const k of K) for (const f of ['top','bot','sun','sky','gnd']) k[f] = new THREE.Color(k[f]);
+const T = { mode:'auto', hour:12, play:false };
+const tc = {top:new THREE.Color(), bot:new THREE.Color(), sun:new THREE.Color(), sky:new THREE.Color(), gnd:new THREE.Color()};
+let NIGHT = 0;
+function phaseOf(h){ return h<5?'Night': h<7.3?'Dawn': h<17.6?'Day': h<19.9?'Dusk':'Night'; }
+function applyTime(h){
+  let i=0; while (i<K.length-2 && K[i+1].h<=h) i++;
+  const a=K[i], b=K[i+1], f = clamp((h-a.h)/(b.h-a.h),0,1);
+  for (const k of ['top','bot','sun','sky','gnd']) tc[k].copy(a[k]).lerp(b[k], f);
+  const sunI = a.sunI+(b.sunI-a.sunI)*f, hemiI = a.hemiI+(b.hemiI-a.hemiI)*f; NIGHT = a.night+(b.night-a.night)*f;
+  skyU.top.value.copy(tc.top); skyU.bot.value.copy(tc.bot); skyU.sunCol.value.copy(tc.sun);
+  scene.fog.color.copy(tc.bot);
+  const ang = (h-6)/12*Math.PI;
+  const sd = new THREE.Vector3(Math.cos(ang), Math.sin(ang), .42).normalize();
+  skyU.sunDir.value.copy(sd);
+  const ld = sd.y > .1 ? sd : new THREE.Vector3(-Math.cos(ang), Math.max(.55, -Math.sin(ang)), .42).normalize();
+  const c = controls.target;
+  sun.position.set(c.x + ld.x*120, ld.y*120, c.z + ld.z*120); sun.target.position.set(c.x, 0, c.z);
+  sun.color.copy(tc.sun); sun.intensity = sunI;
+  hemi.color.copy(tc.sky); hemi.groundColor.copy(tc.gnd); hemi.intensity = hemiI;
+  starMat.opacity = NIGHT*.9;
+  M.glass.emissiveIntensity = NIGHT*2.4;
+  M.eye.emissiveIntensity = .9 + NIGHT*2.2;
+  for (const l of lamps) l.intensity = NIGHT*14;
+  for (const p of REPOS) p.rimMat.emissiveIntensity = .2 + NIGHT*.9;
+  renderer.toneMappingExposure = 1.15 + NIGHT*.25;
+  if (STORM > .001){
+    const sc = STORM_COL.clone().multiplyScalar(1 - NIGHT*.75);
+    scene.fog.color.lerp(sc, STORM*.85); skyU.bot.value.lerp(sc, STORM*.8); skyU.top.value.lerp(sc, STORM*.55);
+    sun.intensity *= 1 - STORM*.55; hemi.intensity *= 1 - STORM*.2;
+  }
+  scene.fog.near = 140 - STORM*136; scene.fog.far = 640 - STORM*545;
+}
+const STORM_COL = new THREE.Color('#d9a26a');
+function fmtClock(h){ const hh=Math.floor(h)%24, mm=Math.floor((h-Math.floor(h))*60); const ap = hh<12?'AM':'PM'; return `${(hh%12)||12}:${String(mm).padStart(2,'0')} ${ap}`; }
+function computerHour(){ const d=new Date(); return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600; }
+function syncTimebar(){
+  $('#phaseName').textContent = phaseOf(T.hour);
+  $('#clock').textContent = fmtClock(T.hour);
+  $('#modeTag').textContent = T.play ? 'Fast-forward' : T.mode==='auto' ? 'Your clock' : 'Manual';
+  if (document.activeElement !== $('#timeSlider')) $('#timeSlider').value = T.hour;
+  for (const b of $('#tbChips').children){
+    const v=b.dataset.t;
+    b.classList.toggle('on', v==='play' ? T.play : v==='auto' ? (T.mode==='auto'&&!T.play) : (T.mode==='manual'&&!T.play&&Math.abs(parseFloat(v)-T.hour)<.01));
+  }
+}
+$('#tbChips').addEventListener('click', e=>{
+  const v = e.target.closest('button')?.dataset.t; if(!v) return;
+  if (v==='play'){ T.play = !T.play; if (T.play) T.mode='manual'; }
+  else if (v==='auto'){ T.mode='auto'; T.play=false; }
+  else { T.mode='manual'; T.play=false; T.hour=parseFloat(v); }
+  syncTimebar();
+});
+$('#timeSlider').addEventListener('input', e=>{ T.mode='manual'; T.play=false; T.hour=parseFloat(e.target.value); syncTimebar(); });
+T.hour = computerHour();
+
+/* ================= UI state ================= */
+const S = { repo:'bot-oasis', sel:null, drawer:null, labels:true };
+const sbBody = $('#sbBody');
+const statusLabel = s => s==='working'?'Working': s==='review'?'Ready for review':'Idle';
+
+function renderSidebar(){
+  const working = threads.filter(t=>t.status==='working').length;
+  $('#brandStats').textContent = `${working} agent${working===1?'':'s'} working · ${REPOS.length} projects`;
+  if (!S.repo){
+    const review = threads.filter(t=>t.status==='review').length;
+    sbBody.innerHTML = `
+      <div class="eyebrow" style="margin-top:0">All projects</div>
+      <div class="stats"><div class="stat"><b>${working}</b><span>working</span></div><div class="stat"><b>${review}</b><span>to review</span></div><div class="stat"><b>${threads.length}</b><span>threads</span></div></div>
+      <button class="btn-primary" id="newConv">${plusIcon}New conversation</button>
+      <div class="eyebrow">${REPOS.length} projects</div>
+      <ul class="list">${REPOS.map(p=>{ const ts=threads.filter(t=>t.repo===p.id); const w=ts.filter(t=>t.status==='working').length;
+        return `<li data-repo="${p.id}"><span class="hexico" style="background:${p.color}"><i></i></span><span class="t">${esc(p.name)}<br><span class="meta">${w?`${w} working · `:''}${ts.length} threads</span></span></li>`}).join('')}</ul>
+      <button class="btn-ghost" id="addProj">${plusIcon}Add project</button>`;
+  } else {
+    const p = repoById[S.repo]; const ts = threads.filter(t=>t.repo===p.id).sort((a,b)=>(a.status==='working'?0:a.status==='review'?1:2)-(b.status==='working'?0:b.status==='review'?1:2) || b.updated-a.updated);
+    sbBody.innerHTML = `
+      <button class="back" id="backAll">‹ All projects</button>
+      <div class="repo-card"><span class="hexico" style="background:${p.color}"><i></i></span><div style="min-width:0"><div class="repo-name">${esc(p.name)}</div><div class="repo-path mono">${esc(p.path)}</div></div></div>
+      <button class="btn-primary" id="newConv">${plusIcon}New conversation</button>
+      <div class="row2"><button class="btn-ghost" id="finder">${folderIcon}Finder</button><button class="btn-ghost" id="copyPath">${copyIcon}Copy path</button></div>
+      <div class="eyebrow">${ts.length} threads</div>
+      ${p.custom ? '' : ''}<ul class="list">${ts.length ? ts.map(t=>`<li data-tid="${t.id}" class="${S.sel===t.id?'sel':''}"><span class="dot ${t.waiting?'ask':t.status}"></span><span class="t">${esc(t.title)}</span><span class="age" data-age="${t.id}">${ago(t.updated).replace(' ago','')}</span></li>`).join('') : '<li class="empty">No threads yet. Start a conversation to build the first station.</li>'}</ul>
+      <div class="eyebrow eb-row"><span>${Object.keys(files(p.id)).length} files</span><button class="mini" id="newFile">+ New file</button></div>
+      <ul class="list files">${Object.keys(files(p.id)).sort().map(f=>`<li data-file="${esc(f)}" class="${FV.repo===p.id && FV.path===f ? 'sel' : ''}"><span class="fico" aria-hidden="true">${/\.(py|js|html|css)$/i.test(f) ? '&lt;/&gt;' : '¶'}</span><span class="t mono">${esc(f)}</span></li>`).join('') || '<li class="empty">No files yet.</li>'}</ul>${p.custom ? '<button class="btn-ghost rm" id="rmProj">Remove project</button>' : ''}`;
+  }
+}
+const plusIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
+const folderIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>`;
+const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>`;
+
+sbBody.addEventListener('click', async e=>{
+  const li = e.target.closest('li');
+  if (e.target.closest('#backAll')){ selectRepo(null); return; }
+  if (e.target.closest('#newConv')){ openNew(); return; }
+  if (e.target.closest('#finder')){ toast('Opening folders works once this is hooked up to agents on your computer.'); return; }
+  if (e.target.closest('#copyPath')){ const p = repoById[S.repo].path; try{ await navigator.clipboard.writeText(p); toast('Copied '+p); }catch{ toast(p); } return; }
+  if (li?.dataset.repo){ selectRepo(li.dataset.repo, true); return; }
+  if (li?.dataset.tid){ if (innerWidth < 760) setSidebar(false); selectThread(li.dataset.tid, true); return; }
+});
+
+function selectRepo(id, fly=false){
+  S.repo = id;
+  for (const p of REPOS){ p.deckMat.color.set(0x3b3548); if (p.id===id) p.deckMat.color.copy(new THREE.Color(0x2b2740).lerp(p.col,.55)); }
+  if (fly && id){ const p=repoById[id]; flyTo(new THREE.Vector3(p.cx,0,p.cz), 52); }
+  if (!id && fly) flyHome();
+  renderSidebar();
+}
+
+/* popup */
+const popup = $('#popup');
+function selectThread(id, fly=false){
+  const t = threads.find(x=>x.id===id); if(!t) return;
+  if (S.repo !== t.repo) selectRepo(t.repo);
+  const prev = stations.get(S.sel); if (prev) prev.padMat.emissiveIntensity = 0;
+  S.sel = id; const st = stations.get(id); if (st) st.padMat.emissiveIntensity = .8;
+  popup.hidden = !!S.drawer; fillPopup();
+  if (fly && st) flyTo(st.g.position.clone(), 30);
+  renderSidebar();
+}
+function closePopup(){ const st=stations.get(S.sel); if(st) st.padMat.emissiveIntensity=0; S.sel=null; popup.hidden=true; renderSidebar(); }
+function fillPopup(){
+  const t = threads.find(x=>x.id===S.sel); if(!t){ popup.hidden=true; return; }
+  $('#ppTitle').textContent = t.title;
+  $('#ppDot').className = 'dot '+(t.waiting ? 'ask' : t.status);
+  $('#ppLabel').textContent = t.waiting ? 'Waiting for your OK' : statusLabel(t.status);
+  $('#ppAge').textContent = '· '+ago(t.updated);
+  const bar = $('#ppBar'); bar.style.width = (t.status==='working' ? Math.max(4,t.progress*100) : 100)+'%';
+  bar.style.background = t.status==='working' ? 'var(--ok)' : t.status==='review' ? 'var(--warn)' : '#5f596f';
+}
+$('#ppClose').onclick = closePopup;
+$('#ppOpen').onclick = ()=> openDrawer(S.sel);
+$('#ppArchive').onclick = ()=> archive(S.sel);
+
+/* drawer */
+const logEl = $('#log');
+function openDrawer(id){ if (typeof closeFile==='function' && FV.repo) closeFile(); S.drawer = id; $('#drawer').hidden = false; popup.hidden = true; renderDrawer(true); }
+function closeDrawer(){ S.drawer = null; $('#drawer').hidden = true; if (S.sel) popup.hidden = false; }
+$('#dClose').onclick = closeDrawer;
+function renderDrawer(scroll){
+  const t = threads.find(x=>x.id===S.drawer); if(!t){ closeDrawer(); return; }
+  const repo = repoById[t.repo];
+  $('#dTitle').textContent = t.title;
+  $('#dMeta').innerHTML = `<span class="dot ${t.status}"></span>${statusLabel(t.status)} · <span class="mono">${esc(repo.name)}</span> · ${ago(t.updated)}`;
+  const atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 40;
+  logEl.innerHTML = t.msgs.map(m=>{
+    if (m.k==='user' && m.sys) return `<div class="m-sys md">${md(m.text)}</div>`;
+    if (m.k==='user') return `<div class="m-user">${esc(m.text)}</div>`;
+    if (m.k==='think') return `<div class="m-think">${esc(m.text)}</div>`;
+    if (m.k==='tool') return `<div class="m-tool"><span class="tag ${m.tool}">${m.tool}</span><span>${esc(m.text)}</span></div>`;
+    return `<div class="m-agent md">${md(m.text)}</div>`;
+  }).join('') + (t.ai==='pending' && t.aiText ? `<div class="m-agent md">${md(t.aiText)}</div>` : '') + (t.waiting ? `<div class="m-working ask"><span class="dot ask"></span>Waiting for your OK at the top of the screen</div>` : t.status==='working' ? `<div class="m-working"><span class="dot working"></span>${t.ai==='pending' ? 'The agent is working on it…' : 'Working…'}</div>` : '');
+  if (scroll || atBottom) logEl.scrollTop = logEl.scrollHeight;
+}
+$('#composer').addEventListener('submit', e=>{
+  e.preventDefault();
+  const text = $('#msg').value.trim(); const t = threads.find(x=>x.id===S.drawer); if(!text||!t) return;
+  $('#msg').value='';
+  t.msgs.push({k:'user', text}); t.real = true;
+  t.steps = planSteps(t, String(t.msgs.length)); t.shown = 0; t.progress = 0; t.dur = 35+rnd()*35;
+  t.status = 'working'; t.updated = Date.now();
+  const st = stations.get(t.id); if (st) assignWorkers(st);
+  if (sample){ t.dur = 45+rnd()*20; runAgentAI(t); } else saveThreads();
+  renderDrawer(true); renderSidebar(); fillPopup();
+});
+$('#msg').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#composer').requestSubmit(); } });
+
+/* archive / undo */
+let lastArchived = null;
+function archive(id){
+  const t = threads.find(x=>x.id===id); if(!t) return;
+  t.ctl?.abort(); for (const a of APPROVALS.filter(a=>a.tid===id)) a.resolve(false);
+  const st = stations.get(id);
+  if (st){ releaseWorkers(st); removeStation(st); }
+  threads.splice(threads.indexOf(t),1);
+  lastArchived = t; saveThreads();
+  if (S.drawer===id) closeDrawer();
+  closePopup();
+  toast(`Archived “${t.title}”`, 'Undo', ()=>{
+    if (!lastArchived) return; const tt = lastArchived; lastArchived=null;
+    threads.push(tt); saveThreads(); const s = freeSlot(repoById[tt.repo]);
+    if (s){ const st2 = makeStation(tt, s, true); if (tt.status==='working') assignWorkers(st2); }
+    selectThread(tt.id);
+  });
+}
+
+/* new conversation */
+const IDEAS = { 'bot-oasis':['Add a weather system with sandstorms','Show agent names above the bots'], glowfall:['Add a pause menu','Make the glow pulse with the music'], trading:['Chart profit by day of week','Add a trade notes field'], chess:['Add a tournament bracket page','Make the site work on phones'], aiml:['Add a learning-rate schedule','Plot the loss curve after training'], 'it-support':['Quiz me on common port numbers','Make flashcards for the OSI model'] };
+function openNew(){
+  $('#repoSel').innerHTML = REPOS.map(p=>`<option value="${p.id}" ${p.id===(S.repo||'bot-oasis')?'selected':''}>${esc(p.name)}</option>`).join('');
+  fillChips(); $('#task').value=''; $('#modal').hidden=false; setTimeout(()=>$('#task').focus(),30);
+}
+function fillChips(){ $('#taskChips').innerHTML = (IDEAS[$('#repoSel').value]||[]).map(s=>`<button type="button">${esc(s)}</button>`).join(''); }
+$('#repoSel').addEventListener('change', fillChips);
+$('#taskChips').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ $('#task').value=b.textContent; $('#task').focus(); } });
+$('#cancelNew').onclick = ()=> $('#modal').hidden = true;
+$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') $('#modal').hidden=true; });
+$('#newForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const text = $('#task').value.trim(); if(!text){ $('#task').focus(); return; }
+  const repo = repoById[$('#repoSel').value];
+  if (!freeSlot(repo)){ toast(`${repo.name} is full. Archive a thread to make room.`); return; }
+  $('#modal').hidden = true;
+  startTask(repo.id, text);
+  toast('Agent started. Two bots are on their way to build the station.');
+});
+
+/* toast */
+let toastTimer;
+function toast(text, act, fn){
+  $('#toastText').textContent = text; const b=$('#toastAct');
+  b.hidden = !act; b.textContent = act||''; b.onclick = ()=>{ $('#toast').hidden=true; fn&&fn(); };
+  $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(()=>$('#toast').hidden=true, act?6000:3500);
+}
+
+/* toolbar */
+$('#tHome').onclick = flyHome;
+$('#tIn').onclick = ()=> dolly(.7);
+$('#tOut').onclick = ()=> dolly(1.4);
+$('#tSpin').onclick = e=>{ controls.autoRotate = !controls.autoRotate; e.currentTarget.classList.toggle('on', controls.autoRotate); };
+$('#tLabels').onclick = e=>{ S.labels=!S.labels; $('#labels').classList.toggle('off', !S.labels); e.currentTarget.classList.toggle('on', S.labels); };
+$('#tSide').onclick = ()=> setSidebar($('#sidebar').classList.contains('collapsed'));
+function setSidebar(open){ $('#sidebar').classList.toggle('collapsed', !open); $('#tSide').classList.toggle('on', open); if (open && innerWidth < 760 && S.sel) closePopup(); }
+if (innerWidth < 760) setSidebar(false);
+
+document.addEventListener('keydown', e=>{
+  if (e.key!=='Escape') return;
+  if (!$('#modal').hidden) $('#modal').hidden = true;
+  else if (!$('#projModal').hidden) $('#projModal').hidden = true;
+  else if (!$('#aiModal').hidden) $('#aiModal').hidden = true;
+  else if (!$('#fileView').hidden && document.activeElement!==$('#fvText')) closeFile();
+  else if (!$('#projList').hidden) $('#projList').hidden = true;
+  else if (!$('#lab').hidden && document.activeElement!==$('#code')) closeLab();
+  else if (S.drawer) closeDrawer();
+  else if (S.sel) closePopup();
+});
+
+/* ================= camera moves ================= */
+let fly = null;
+function flyTo(tgt, dist){
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  const d = dist ?? camera.position.distanceTo(controls.target);
+  const tp = tgt.clone().add(dir.multiplyScalar(d)); if (tp.y < 9) tp.y = 9;
+  if (reduced){ controls.target.copy(tgt); camera.position.copy(tp); return; }
+  fly = {t:0, fp:camera.position.clone(), ft:controls.target.clone(), tp, tt:tgt.clone()};
+}
+function flyHome(){ fly = reduced ? null : {t:0, fp:camera.position.clone(), ft:controls.target.clone(), tp:HOME_POS.clone(), tt:HOME_TGT.clone()}; if (reduced){ camera.position.copy(HOME_POS); controls.target.copy(HOME_TGT);} }
+function dolly(f){ const off = camera.position.clone().sub(controls.target); const len = clamp(off.length()*f, controls.minDistance, controls.maxDistance); flyTo(controls.target.clone(), len); }
+controls.addEventListener('start', ()=>{ fly = null; });
+
+/* ================= picking ================= */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let downXY = null, hoverDirty = false, lastMove = null, hovered = null;
+function pick(cx, cy){
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((cx-r.left)/r.width)*2-1, -((cy-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hs = ray.intersectObjects(hitMeshes, false);
+  if (hs.length) return {tid: hs[0].object.userData.tid};
+  const hd = ray.intersectObjects(decks, false);
+  if (hd.length) return {repo: hd[0].object.userData.repo};
+  return null;
+}
+renderer.domElement.addEventListener('pointerdown', e=>{ downXY=[e.clientX,e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e=>{
+  if (!downXY) return; const moved = Math.hypot(e.clientX-downXY[0], e.clientY-downXY[1]); downXY=null;
+  if (moved > 6) return;
+  const h = pick(e.clientX, e.clientY);
+  if (h?.tid) selectThread(h.tid, true);
+  else if (h?.repo){ if (S.sel) closePopup(); selectRepo(h.repo); if(innerWidth>=760) setSidebar(true); }
+  else if (S.sel) closePopup();
+});
+renderer.domElement.addEventListener('pointermove', e=>{ lastMove=[e.clientX,e.clientY]; hoverDirty=true; });
+
+/* ================= resize ================= */
+function resize(){ const w=host.clientWidth, h=host.clientHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize);
+
+/* ================= simulation ================= */
+function tickThreads(dt){
+  let changed = false;
+  for (const t of threads){
+    if (t.status!=='working') continue;
+    t.progress = Math.min(1, t.progress + dt/t.dur);
+    if (t.ai==='pending' && t.progress > .97) t.progress = .97;
+    const target = Math.floor(t.progress*t.steps.length);
+    while (t.shown < target && t.shown < t.steps.length){ t.msgs.push(t.steps[t.shown++]); t.updated = Date.now(); changed = true; if (S.drawer===t.id) renderDrawer(); }
+    if (t.progress >= 1){
+      while (t.shown < t.steps.length) t.msgs.push(t.steps[t.shown++]);
+      t.status = 'review'; t.updated = Date.now(); changed = true;
+      const st = stations.get(t.id); if (st) releaseWorkers(st);
+      if (t.real){ saveThreads(); if (t.parent) notifyParent(t); }
+      toast(`Agent finished “${t.title}”`, 'Open', ()=>{ selectThread(t.id, true); openDrawer(t.id); });
+      if (S.drawer===t.id) renderDrawer();
+    }
+  }
+  if (changed) renderSidebar();
+  if (S.sel) fillPopup();
+}
+
+/* ================= main loop ================= */
+const clock = new THREE.Clock();
+const v3 = new THREE.Vector3();
+let acc = 0, uiAcc = 0;
+function loop(){
+  const dt = Math.min(clock.getDelta(), .05), time = clock.elapsedTime;
+
+  // camera
+  if (fly){ fly.t = Math.min(1, fly.t + dt/.9); const e = ease(fly.t); camera.position.lerpVectors(fly.fp, fly.tp, e); controls.target.lerpVectors(fly.ft, fly.tt, e); if (fly.t>=1) fly=null; }
+  controls.update();
+  sky.position.copy(camera.position); stars.position.copy(camera.position);
+
+  // time of day
+  if (T.play) T.hour = (T.hour + dt*1.6) % 24;
+  else if (T.mode==='auto') T.hour = computerHour();
+  applyTime(T.hour);
+
+  // sim
+  acc += dt; if (acc >= .25){ tickThreads(acc); acc = 0; }
+  uiAcc += dt; if (uiAcc >= .5){ uiAcc = 0; syncTimebar(); }
+
+  // stations
+  for (const st of stations.values()){
+    const working = st.t.status==='working';
+    if (st.build < 1){ st.build = Math.min(1, st.build + dt/5); st.b.scale.y = Math.max(.02, ease(st.build)); }
+    st.scaf.visible = working;
+    st.beacon.visible = st.t.status!=='idle' || !!st.t.waiting;
+    st.beacon.material = st.t.waiting ? BEACON.ask : working ? BEACON.working : BEACON.review;
+    st.beacon.position.y = st.h + 1.1 + Math.sin(time*2.4 + st.slot.x)*.15;
+    st.spark.visible = working && Math.sin(time*23 + st.slot.z*3) > .2;
+    if (st.spark.visible){ st.spark.position.set(Math.sin(time*7)*.5, .5+Math.random()*.6, 1.25); }
+    const target = hovered===st.t.id ? 1.06 : 1;
+    st.g.scale.x += (target-st.g.scale.x)*.2; st.g.scale.z = st.g.scale.x;
+  }
+  for (let i=dying.length-1;i>=0;i--){ const st=dying[i]; st.kill += dt/.6; const s=Math.max(.001,1-ease(Math.min(1,st.kill))); st.g.scale.set(s,s,s); if (st.kill>=1){ scene.remove(st.g); dying.splice(i,1); } }
+
+  // bots
+  for (const b of bots){
+    const g = b.g; b.phase += dt;
+    if (b.station && b.station.gone){ b.station=null; b.state='pause'; b.wait=1; }
+    if (b.state==='pause'){
+      b.wait -= dt; b.legL.rotation.x*=.85; b.legR.rotation.x*=.85; b.armL.rotation.x*=.85; b.armR.rotation.x*=.85;
+      g.position.y = DECK_Y;
+      if (b.wait<=0){ b.target = randomSpot(b.repo); b.state='walk'; }
+    } else if (b.state==='walk' || b.state==='goto'){
+      if (b.state==='goto' && b.station) b.target = workSpot(b.station, b.slotIdx);
+      v3.subVectors(b.target, g.position); v3.y=0; const d = v3.length();
+      if (d < .08){
+        if (b.state==='goto' && b.station && b.station.t.status==='working') b.state='work';
+        else { b.state='pause'; b.wait = 1.5+Math.random()*4; }
+      } else {
+        const step = Math.min(d, b.speed*dt); g.position.addScaledVector(v3.normalize(), step);
+        const want = Math.atan2(v3.x, v3.z); let dr = want - g.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); g.rotation.y += dr*Math.min(1, dt*10);
+        const sw = Math.sin(b.phase*11);
+        b.legL.rotation.x = sw*.7; b.legR.rotation.x = -sw*.7; b.armL.rotation.x = -sw*.6; b.armR.rotation.x = sw*.6;
+        g.position.y = DECK_Y + Math.abs(Math.sin(b.phase*11))*.06;
+      }
+    } else if (b.state==='work'){
+      const st = b.station;
+      if (!st || st.t.status!=='working'){ b.station=null; b.state='pause'; b.wait=.5+Math.random(); continue; }
+      const want = Math.atan2(st.g.position.x-g.position.x, st.g.position.z-g.position.z);
+      let dr = want - g.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); g.rotation.y += dr*Math.min(1, dt*8);
+      const hit = Math.sin(b.phase*(9+b.slotIdx*2));
+      b.armR.rotation.x = -1.6 + hit*.8; b.armL.rotation.x = -.7 + Math.sin(b.phase*4)*.2;
+      b.legL.rotation.x*=.8; b.legR.rotation.x*=.8;
+      g.position.y = DECK_Y + Math.max(0, Math.sin(b.phase*4.5 + b.slotIdx*2))*.07;
+    }
+  }
+
+  // rocks + dust
+  for (const r of rocks){ const u=r.userData; r.rotation.x += u.rx*dt; r.rotation.y += u.ry*dt; r.position.y = u.base + Math.sin(time*u.vy + u.ph)*1.2; }
+  STORM += ((stormOn?1:0) - STORM) * Math.min(1, dt*.9);
+  const dp = dustGeo.attributes.position; const ws = 2.2 + STORM*16; for (let i=0;i<dp.count;i++){ let x=dp.getX(i)+dt*ws*(1+(i%3)*.3); if (x>100) x-=200; dp.setX(i,x); } dp.needsUpdate = true;
+  dust.material.opacity = .5*(1-NIGHT*.6) + STORM*.4; dust.material.size = .22 + STORM*.3;
+  dust.position.set(controls.target.x, 0, controls.target.z);
+
+  // hover
+  if (hoverDirty && lastMove && !downXY){ hoverDirty=false; const h = pick(lastMove[0], lastMove[1]); hovered = h?.tid || null; renderer.domElement.style.cursor = h ? 'pointer' : 'grab'; }
+
+  renderer.render(scene, camera);
+
+  // overlays
+  const W = host.clientWidth, H = host.clientHeight;
+  if (S.labels) for (const p of REPOS){
+    v3.set(p.cx, DECK_Y+.2, p.cz + R*.8).project(camera); const el = repoLabels[p.id];
+    if (v3.z>1){ el.style.opacity=0; continue; }
+    el.style.opacity = 1; el.style.transform = `translate(${(v3.x*.5+.5)*W}px, ${(-v3.y*.5+.5)*H}px) translate(-50%,-50%)`;
+  }
+  if (S.sel && !popup.hidden){
+    const st = stations.get(S.sel);
+    if (st){ v3.copy(st.g.position); v3.y += st.h + 1.2; v3.project(camera);
+      const x=(v3.x*.5+.5)*W, y=(-v3.y*.5+.5)*H, pw=popup.offsetWidth, ph=popup.offsetHeight;
+      const px = clamp(x+28, 12, W-pw-12), py = clamp(y-ph/2, 70, H-ph-12);
+      popup.style.visibility = v3.z>1 ? 'hidden':'visible';
+      popup.style.transform = `translate(${px}px, ${py}px)`;
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ages refresh */
+setInterval(()=>{ document.querySelectorAll('[data-age]').forEach(el=>{ const t=threads.find(x=>x.id===el.dataset.age); if(t) el.textContent=ago(t.updated).replace(' ago',''); }); if(S.drawer) renderDrawer(); }, 15000);
+
+
+/* ================= storage helpers ================= */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
+};
+
+/* ================= Claude + downloads capabilities ================= */
+let sample = null, sampleLimits = null, downloads = null, aiChecked = false;
+(async ()=>{
+  try{ sample = (await window.claude?.use?.('sample')) ?? null; }catch{ sample = null; }
+  if (sample){ try{ sampleLimits = await sample.limits(); }catch{ sampleLimits = null; } AI_SOURCE = 'claude'; }
+  else useOwnAI();
+  aiChecked = true; aiReady();
+})();
+(async ()=>{ try{ downloads = (await window.claude?.use?.('downloads')) ?? null; }catch{ downloads = null; } })();
+function aiErr(e){
+  if (['bad_key','bad_model','network'].includes(e?.code)) return e.message;
+  if (e?.code==='upstream_error' && AI_SOURCE==='own' && e.message) return 'The AI service had a problem: ' + e.message;
+  if (e?.code==='rate_limited' && AI_SOURCE==='own') return 'The AI service says you hit its limit for now. Wait a bit (free tiers reset daily), then try again.';
+  return ({
+    not_granted: 'You chose not to let this page use Claude. Reload the page to be asked again.',
+    sampling_disabled: 'Claude isn’t available on this account.',
+    rate_limited: 'Too many messages right now. Wait a minute, then try again.',
+    session_expired: 'Sign in to Claude again, then try again.',
+    image_rejected: 'That picture couldn’t be used. Try a JPG or PNG under 20 MB.',
+    images_unavailable: 'Pictures can’t be sent from this view.',
+    refused: 'Claude declined that one. Try asking in a different way.',
+    prompt_too_large: 'That’s too much at once. Start a new chat or send less.',
+    empty_completion: 'Claude didn’t reply. Try rephrasing.',
+    invalid_json: 'Claude’s answer came back in the wrong shape. Try again.',
+  })[e?.code] || 'Couldn’t reach Claude. Try again.';
+}
+
+
+/* ================= your own AI key (works outside claude.ai) ================= */
+const PROVIDERS = {
+  gemini:    {label:'Google Gemini (free tier)', model:'gemini-3.8-flash', needsKey:true,
+              help:'Free key: go to <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>, sign in with Google, press “Create API key”, and paste it here. The free tier has daily limits, and Google may use free-tier conversations to improve its products.'},
+  anthropic: {label:'Claude API (paid)', model:'claude-sonnet-5-5', needsKey:true,
+              help:'Create a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. This is billed per message from credit you add there; it is separate from a Claude.ai subscription.'},
+  ollama:    {label:'Ollama on your computer (free)', model:'llama3.2', base:'http://localhost:11434/v1', needsKey:false,
+              help:'Install Ollama from <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>, download a model (for example <code>ollama pull llama3.2</code>), then start it so this page may connect: set the environment variable <code>OLLAMA_ORIGINS=*</code> and run <code>ollama serve</code>. Free and private, but it needs a fairly strong computer, and small models are weaker at tools.'},
+  openai:    {label:'Another service (OpenAI-compatible)', model:'', base:'', needsKey:true,
+              help:'Works with services that offer an OpenAI-compatible API, such as Groq or OpenRouter. Paste the service’s base URL (ending in /v1), your key, and a model name from its website.'},
+};
+let AI_SOURCE = 'none';     // 'claude' | 'own' | 'none'
+function aiCfg(){ try{ return JSON.parse(localStorage.getItem('bo.ai') || 'null'); }catch{ return null; } }
+function aiCfgOk(c){ return !!(c && PROVIDERS[c.provider] && c.model && (c.key || !PROVIDERS[c.provider].needsKey) && (c.provider!=='openai' && c.provider!=='ollama' || c.base)); }
+const OWN_LIMITS = {maxPromptBytes:262144, images:{maxCount:5, maxInputBytes:5*1024*1024, mediaTypes:['image/png','image/jpeg','image/webp','image/gif']}, tools:{maxCount:20}};
+
+function aiE(code, message, text){ return {code, message, text}; }
+async function blobB64(b){ const u = new Uint8Array(await b.arrayBuffer()); let s=''; for (let i=0;i<u.length;i+=0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i+0x8000)); return btoa(s); }
+async function aiHttp(url, init, signal){
+  let r;
+  try{ r = await fetch(url, {...init, signal}); }
+  catch(e){ if (signal?.aborted) throw aiE('cancelled','cancelled'); throw aiE('network', 'Couldn’t reach the AI service. Check your internet connection' + (url.includes('localhost') ? ', and make sure Ollama is running with OLLAMA_ORIGINS=*.' : '.')); }
+  const txt = await r.text(); let j = null; try{ j = JSON.parse(txt); }catch{}
+  if (!r.ok){
+    const m = (j?.error?.message || j?.message || txt || r.statusText || '').toString().slice(0,240);
+    if (r.status===401 || r.status===403) throw aiE('bad_key', 'The AI service rejected your key. Check it in AI settings. ('+m+')');
+    if (r.status===429) throw aiE('rate_limited', m);
+    if (r.status===404) throw aiE('bad_model', 'The AI service doesn’t know that model name. Check it in AI settings. ('+m+')');
+    throw aiE('upstream_error', m);
+  }
+  return j || {};
+}
+function cleanSchema(s){
+  if (!s || typeof s!=='object') return s;
+  const o = Array.isArray(s) ? s.map(cleanSchema) : {};
+  if (!Array.isArray(s)) for (const [k,v] of Object.entries(s)){ if (k==='required' && Array.isArray(v) && !v.length) continue; o[k] = (v && typeof v==='object') ? cleanSchema(v) : v; }
+  return o;
+}
+const ADAPT = {
+  anthropic: {
+    init(msgs, imgs){ const m = msgs.map(x=>({role:x.role, content:[{type:'text', text:x.content}]})); if (imgs.length) m[m.length-1].content.unshift(...imgs.map(i=>({type:'image', source:{type:'base64', media_type:i.mime, data:i.data}}))); return {m}; },
+    async call(c, st, tools, signal){
+      const body = {model:c.model, max_tokens:8000, messages:st.m};
+      if (tools.length) body.tools = tools.map(t=>({name:t.name, description:t.description, input_schema:t.inputSchema || {type:'object', properties:{}}}));
+      const j = await aiHttp('https://api.anthropic.com/v1/messages', {method:'POST', headers:{'content-type':'application/json', 'x-api-key':c.key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify(body)}, signal);
+      const content = j.content || [];
+      return {text:content.filter(x=>x.type==='text').map(x=>x.text).join(''), calls:content.filter(x=>x.type==='tool_use').map(x=>({id:x.id, name:x.name, args:x.input||{}})), raw:content, cut:j.stop_reason==='max_tokens'};
+    },
+    add(st, res, out){ st.m.push({role:'assistant', content:res.raw}); st.m.push({role:'user', content:out.map(r=>({type:'tool_result', tool_use_id:r.id, content:r.out}))}); },
+  },
+  gemini: {
+    init(msgs, imgs){ const c = msgs.map(x=>({role:x.role==='assistant' ? 'model' : 'user', parts:[{text:x.content}]})); if (imgs.length) c[c.length-1].parts.unshift(...imgs.map(i=>({inlineData:{mimeType:i.mime, data:i.data}}))); return {c}; },
+    async call(c, st, tools, signal){
+      const body = {contents:st.c};
+      if (tools.length) body.tools = [{functionDeclarations: tools.map(t=>{ const d = {name:t.name, description:t.description}; if (t.inputSchema && Object.keys(t.inputSchema.properties||{}).length) d.parameters = cleanSchema(t.inputSchema); return d; })}];
+      const j = await aiHttp(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(c.model)}:generateContent`, {method:'POST', headers:{'content-type':'application/json', 'x-goog-api-key':c.key}, body:JSON.stringify(body)}, signal);
+      const cand = j.candidates?.[0];
+      if (!cand){ if (j.promptFeedback?.blockReason) throw aiE('refused', 'Blocked: '+j.promptFeedback.blockReason); throw aiE('empty_completion', 'No answer'); }
+      const parts = cand.content?.parts || [];
+      return {text:parts.filter(p=>p.text && !p.thought).map(p=>p.text).join(''), calls:parts.filter(p=>p.functionCall).map((p,i)=>({id:'g'+i, name:p.functionCall.name, args:p.functionCall.args||{}})), raw:{role:'model', parts}, cut:cand.finishReason==='MAX_TOKENS'};
+    },
+    add(st, res, out){ st.c.push(res.raw); st.c.push({role:'user', parts:out.map(r=>({functionResponse:{name:r.name, response:{result:r.out}}}))}); },
+  },
+  openai: {
+    init(msgs, imgs){ const m = msgs.map(x=>({role:x.role, content:x.content})); if (imgs.length){ const last = m[m.length-1]; last.content = [{type:'text', text:last.content}, ...imgs.map(i=>({type:'image_url', image_url:{url:`data:${i.mime};base64,${i.data}`}}))]; } return {m}; },
+    async call(c, st, tools, signal){
+      const body = {model:c.model, messages:st.m};
+      if (tools.length) body.tools = tools.map(t=>({type:'function', function:{name:t.name, description:t.description, parameters:t.inputSchema || {type:'object', properties:{}}}}));
+      const headers = {'content-type':'application/json'}; if (c.key) headers.authorization = 'Bearer '+c.key;
+      const j = await aiHttp(String(c.base).replace(/\/+$/,'') + '/chat/completions', {method:'POST', headers, body:JSON.stringify(body)}, signal);
+      const ch = j.choices?.[0]; const msg = ch?.message || {};
+      const calls = (msg.tool_calls || []).map((x,i)=>{ let a = {}; try{ a = typeof x.function?.arguments==='string' ? JSON.parse(x.function.arguments || '{}') : (x.function?.arguments || {}); }catch{} return {id:x.id || 'o'+i, name:x.function?.name, args:a}; });
+      const text = typeof msg.content==='string' ? msg.content : Array.isArray(msg.content) ? msg.content.map(x=>x.text||'').join('') : '';
+      return {text, calls, raw:msg, cut:ch?.finish_reason==='length'};
+    },
+    add(st, res, out){ st.m.push({role:'assistant', content:res.raw.content ?? '', tool_calls:res.raw.tool_calls}); for (const r of out) st.m.push({role:'tool', tool_call_id:r.id, content:r.out}); },
+  },
+};
+function normTurns(input){
+  const list = typeof input==='string' ? [{role:'user', content:input}] : (input||[]).map(t=>({role:t.role==='assistant' ? 'assistant' : 'user', content:String(t.content||'')}));
+  const out = []; for (const t of list){ if (!t.content.trim()) continue; const last = out[out.length-1]; if (last && last.role===t.role) last.content += '\n\n' + t.content; else out.push({...t}); }
+  while (out.length && out[0].role!=='user') out.shift();
+  if (!out.length || out[out.length-1].role!=='user') throw aiE('invalid_request', 'The conversation must end with a user message');
+  return out;
+}
+function makeOwnSample(cfg){
+  const kind = cfg.provider==='anthropic' ? 'anthropic' : cfg.provider==='gemini' ? 'gemini' : 'openai';
+  const ad = ADAPT[kind];
+  async function run(input, opts={}){
+    const signal = opts.signal;
+    if (signal?.aborted) throw aiE('cancelled', 'cancelled');
+    const tools = opts.tools || [];
+    let imgs = opts.images ? (opts.images instanceof Blob ? [opts.images] : Array.from(opts.images)) : [];
+    const imgData = await Promise.all(imgs.map(async b=>({mime:b.type || 'image/png', data:await blobB64(b)})));
+    let all = '', cut = false;
+    const emit = t=>{ if (!t || !t.trim()) return; all = all ? all + '\n\n' + t : t; try{ opts.onText?.({text:all, delta:t}); }catch{} };
+    try{
+      const st = ad.init(normTurns(input), imgData);
+      for (let round=0; round<10; round++){
+        const res = await ad.call(cfg, st, round<9 ? tools : [], signal);
+        emit(res.text); cut = cut || res.cut;
+        if (!res.calls.length) break;
+        const out = [];
+        for (const c of res.calls){
+          const tool = tools.find(t=>t.name===c.name);
+          const tctl = new AbortController(); const timer = setTimeout(()=>tctl.abort(), 150000);
+          const onAbort = ()=>tctl.abort(); signal?.addEventListener('abort', onAbort, {once:true});
+          let v;
+          try{ if (!tool) throw new Error('Unknown tool '+c.name); v = await tool.execute(c.args || {}, {signal:tctl.signal}); v = typeof v==='string' ? v : JSON.stringify(v ?? null); }
+          catch(e){ v = 'Error: ' + (e?.message || String(e)); }
+          finally{ clearTimeout(timer); signal?.removeEventListener('abort', onAbort); }
+          out.push({...c, out:String(v).slice(0, 32000)});
+          if (signal?.aborted) throw aiE('cancelled', 'cancelled');
+        }
+        ad.add(st, res, out);
+      }
+    }catch(e){ const er = e && e.code ? e : aiE('upstream_error', e?.message || String(e)); if (all) er.text = all; throw er; }
+    if (!all.trim()) throw aiE('empty_completion', 'No text came back');
+    return {text:all, truncated:cut, modelTierApplied:'default'};
+  }
+  const fn = (input, opts)=> run(input, opts);
+  fn.json = async (input, opts={})=>{
+    const r = await run(typeof input==='string' ? input + '\n\nReply with only the JSON value, no other text.' : input, opts);
+    const t = r.text.trim(); const tries = [t, (t.match(/```(?:json)?\s*([\s\S]*?)```/)||[])[1]];
+    const a = Math.min(...['{','['].map(ch=>{ const i = t.indexOf(ch); return i<0 ? Infinity : i; })), b = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']'));
+    if (a!==Infinity && b>a) tries.push(t.slice(a, b+1));
+    for (const x of tries){ if (!x) continue; try{ return JSON.parse(x); }catch{} }
+    throw aiE('invalid_json', 'The answer wasn’t valid JSON', r.text);
+  };
+  fn.limits = async ()=> OWN_LIMITS;
+  return fn;
+}
+function useOwnAI(){
+  const c = aiCfg();
+  if (aiCfgOk(c)){ sample = makeOwnSample(c); sampleLimits = OWN_LIMITS; AI_SOURCE = 'own'; }
+  else if (AI_SOURCE==='own'){ sample = null; sampleLimits = null; AI_SOURCE = 'none'; }
+}
+function aiLabel(){
+  if (AI_SOURCE==='claude') return 'Claude (your account)';
+  if (AI_SOURCE==='own'){ const c = aiCfg(); return `${PROVIDERS[c.provider].label.replace(/ \(.*\)$/,'')} · ${c.model}`; }
+  return 'AI not connected';
+}
+
+/* settings dialog */
+const aiModal = $('#aiModal');
+function fillAiForm(c){
+  const p = $('#aiProv').value; const P = PROVIDERS[p];
+  $('#aiHelp').innerHTML = P.help;
+  $('#aiKeyRow').hidden = !P.needsKey;
+  $('#aiBaseRow').hidden = !(p==='ollama' || p==='openai');
+  $('#aiModel').value = (c && c.provider===p && c.model) || P.model;
+  $('#aiBase').value = (c && c.provider===p && c.base) || P.base || '';
+  $('#aiKey').value = (c && c.provider===p && c.key) || '';
+  $('#aiTestOut').textContent = '';
+}
+function openAISettings(){
+  const c = aiCfg();
+  $('#aiNow').textContent = AI_SOURCE==='claude' ? 'Right now Jarvis is using your Claude account, because it is open on claude.ai. The settings below are used when you open Jarvis anywhere else (for example the file you downloaded).' : AI_SOURCE==='own' ? 'Connected: ' + aiLabel() + '.' : 'Not connected yet. Pick a service and paste a key.';
+  $('#aiProv').innerHTML = Object.entries(PROVIDERS).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join('');
+  $('#aiProv').value = c?.provider && PROVIDERS[c.provider] ? c.provider : 'gemini';
+  fillAiForm(c); $('#aiRemove').hidden = !c; aiModal.hidden = false;
+}
+$('#aiProv').addEventListener('change', ()=> fillAiForm(aiCfg()));
+$('#aiCancel').onclick = ()=> aiModal.hidden = true;
+aiModal.addEventListener('click', e=>{ if (e.target===aiModal) aiModal.hidden = true; });
+$('#aiShow').onclick = e=>{ const k = $('#aiKey'); k.type = k.type==='password' ? 'text' : 'password'; e.currentTarget.textContent = k.type==='password' ? 'Show' : 'Hide'; };
+$('#aiRemove').onclick = ()=>{ try{ localStorage.removeItem('bo.ai'); }catch{} if (AI_SOURCE==='own'){ sample = null; sampleLimits = null; AI_SOURCE = 'none'; } aiModal.hidden = true; aiReady(); toast('Removed your AI key from this browser'); };
+let aiTesting = null;
+$('#aiForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  if (aiTesting) return;
+  const c = {provider:$('#aiProv').value, model:$('#aiModel').value.trim(), key:$('#aiKey').value.trim(), base:$('#aiBase').value.trim()};
+  if (!PROVIDERS[c.provider].needsKey) c.key = c.key || '';
+  if (!aiCfgOk(c)){ $('#aiTestOut').textContent = 'Fill in ' + (!c.model ? 'the model name' : PROVIDERS[c.provider].needsKey && !c.key ? 'your key' : 'the base URL') + '.'; return; }
+  $('#aiTestOut').textContent = 'Testing the connection…'; $('#aiSave').disabled = true;
+  aiTesting = new AbortController();
+  try{
+    const r = await makeOwnSample(c)('Reply with just the word OK.', {signal:aiTesting.signal});
+    try{ localStorage.setItem('bo.ai', JSON.stringify(c)); }catch{}
+    if (AI_SOURCE!=='claude'){ useOwnAI(); }
+    aiModal.hidden = true; aiReady();
+    toast(AI_SOURCE==='claude' ? 'Saved. It will be used when Jarvis is opened outside claude.ai.' : `Connected (${r.text.trim().slice(0,20)}). Chat, agents and Ask Claude now use ${aiLabel()}.`);
+  }catch(err){ $('#aiTestOut').textContent = 'That didn’t work: ' + (err?.message || aiErr(err)); }
+  finally{ aiTesting = null; $('#aiSave').disabled = false; }
+});
+
+/* ================= tiny markdown ================= */
+const CODE = new Map(); let codeSeq = 0;
+function langMode(l){ l = (l||'').toLowerCase(); if (['py','python','python3'].includes(l)) return 'py'; if (['js','javascript','node','mjs'].includes(l)) return 'js'; if (['html','htm','css'].includes(l)) return 'web'; return null; }
+function inl(s){ return esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'); }
+function mdText(t){
+  const lines = t.split('\n'); let html = '', list = null, para = [];
+  const fp = ()=>{ if (para.length){ html += '<p>'+para.map(inl).join('<br>')+'</p>'; para = []; } };
+  const fl = ()=>{ if (list){ html += `<${list.t}>`+list.items.map(x=>'<li>'+inl(x)+'</li>').join('')+`</${list.t}>`; list = null; } };
+  for (const ln of lines){
+    let m;
+    if (!ln.trim()){ fp(); fl(); continue; }
+    if ((m = ln.match(/^#{1,4}\s+(.*)/))){ fp(); fl(); html += '<h4>'+inl(m[1])+'</h4>'; continue; }
+    if ((m = ln.match(/^\s*[-*•]\s+(.*)/))){ fp(); if (!list || list.t!=='ul'){ fl(); list = {t:'ul', items:[]}; } list.items.push(m[1]); continue; }
+    if ((m = ln.match(/^\s*\d+[.)]\s+(.*)/))){ fp(); if (!list || list.t!=='ol'){ fl(); list = {t:'ol', items:[]}; } list.items.push(m[1]); continue; }
+    fl(); para.push(ln);
+  }
+  fp(); fl(); return html;
+}
+function md(src){
+  return src.split('```').map((p,i)=>{
+    if (i%2===0) return mdText(p);
+    const nl = p.indexOf('\n'); const lang = nl>=0 ? p.slice(0,nl).trim() : ''; const code = (nl>=0 ? p.slice(nl+1) : p).replace(/\n$/,'');
+    const id = 'cb'+(++codeSeq);
+    if (CODE.size > 400) CODE.delete(CODE.keys().next().value);
+    if (/^(message|text|sms)$/i.test(lang)){
+      let body = code, to = ''; const m = body.match(/^\s*to:\s*(.+)\n/i); if (m){ to = m[1].trim(); body = body.slice(m[0].length); }
+      body = body.trim(); CODE.set(id, {lang:'message', code:body});
+      return `<div class="msg-card"><div class="msg-head">✉ Message${to ? ' to '+esc(to) : ''}</div><div class="msg-body">${esc(body)}</div><div class="msg-actions"><button class="btn-primary" data-cb="copy" data-id="${id}">Copy message</button><a class="btn-ghost" href="sms:?&body=${encodeURIComponent(body)}" target="_blank" rel="noopener">Open Messages</a></div></div>`;
+    }
+    CODE.set(id, {lang, code});
+    const run = langMode(lang);
+    return `<div class="cb"><div class="cb-head"><span>${esc(lang||'code')}</span><span class="grow"></span><button data-cb="copy" data-id="${id}">Copy</button>${run?`<button data-cb="open" data-id="${id}">Open in Code Lab</button><button class="go" data-cb="run" data-id="${id}">▶ Run</button>`:''}</div><pre>${esc(code)}</pre></div>`;
+  }).join('');
+}
+document.addEventListener('click', async e=>{
+  const b = e.target.closest('[data-cb]'); if (!b) return;
+  const c = CODE.get(b.dataset.id); if (!c) return;
+  if (b.dataset.cb==='copy'){ const msg = c.lang==='message'; try{ await navigator.clipboard.writeText(c.code); toast(msg ? 'Copied. Paste it into your messages app and send.' : 'Copied'); }catch{ toast(msg ? 'Select the message text to copy it.' : 'Select the code to copy it.'); } return; }
+  loadIntoLab(c.lang, c.code); openLab();
+  if (b.dataset.cb==='run' || LAB.mode==='web') runLab();
+});
+
+/* ================= Code Lab ================= */
+const BRY = 'https://cdn.jsdelivr.net/npm/brython@3.14.0';
+const tpl = id => (document.getElementById('tpl-'+id)?.textContent || '').trim();
+const EXAMPLES = [
+  {name:'Trade profit calculator', mode:'web', web:()=>({html:tpl('profit-html'), css:tpl('profit-css'), js:tpl('profit-js')})},
+  {name:'Bouncing bots', mode:'web', web:()=>({html:tpl('bots-html'), css:tpl('bots-css'), js:tpl('bots-js')})},
+  {name:'Position size calculator', mode:'js', code:()=>tpl('risk-js')},
+  {name:'Compound interest table', mode:'py', code:()=>tpl('compound-py')},
+  {name:'Moving-average signals', mode:'py', code:()=>tpl('sma-py')},
+];
+const FILES = { web:[['html','index.html'],['css','style.css'],['js','script.js']], js:[['code','main.js']], py:[['code','main.py']] };
+const LAB = Object.assign({
+  id:null, name:'Trade profit calculator', mode:'web', file:'html',
+  web:{html:'', css:'', js:''}, js:{code:tpl('risk-js')}, py:{code:tpl('compound-py')},
+}, LS.get('bo.lab', {}));
+LAB.output = ''; LAB.lastError = false; LAB.undo = []; LAB.onDone = null;
+if (!LAB.web.html && !LAB.web.css && !LAB.web.js) LAB.web = EXAMPLES[0].web();
+const lab = $('#lab'), codeEl = $('#code'), gutter = $('#gutter'), conEl = $('#console'), frame = $('#preview');
+const curText = ()=> LAB.mode==='web' ? LAB.web[LAB.file] : LAB[LAB.mode].code;
+function setCur(v){ if (LAB.mode==='web') LAB.web[LAB.file] = v; else LAB[LAB.mode].code = v; }
+let draftT; function saveDraft(){ clearTimeout(draftT); draftT = setTimeout(()=>{ const {id,name,mode,file,web,js,py} = LAB; LS.set('bo.lab', {id,name,mode,file,web,js,py}); }, 400); }
+function updGutter(){ const n = codeEl.value.split('\n').length; let s=''; for (let i=1;i<=n;i++) s += i+'\n'; gutter.textContent = s; gutter.scrollTop = codeEl.scrollTop; }
+function renderTabs(){ $('#fileTabs').innerHTML = FILES[LAB.mode].map(([k,n])=>`<button data-f="${k}" class="${(LAB.mode!=='web'||LAB.file===k)?'on':''}">${n}</button>`).join(''); }
+function showFile(){ renderTabs(); codeEl.value = curText() || ''; updGutter(); for (const b of $('#langSeg').children) b.classList.toggle('on', b.dataset.mode===LAB.mode); lab.dataset.mode = LAB.mode; $('#outLabel').textContent = LAB.mode==='web' ? 'Preview · console below' : 'Console'; $('#projName').value = LAB.name; $('#labUndo').hidden = !LAB.undo.length; }
+function setMode(m, run=true){ LAB.mode = m; if (m==='web' && !['html','css','js'].includes(LAB.file)) LAB.file='html'; showFile(); saveDraft(); if (run && m==='web') runLab(); else if (run){ conEl.innerHTML=''; con(m==='py' ? 'Press ▶ Run (or Ctrl+Enter) to run your Python.' : 'Press ▶ Run (or Ctrl+Enter) to run your JavaScript.', 's'); } }
+function pushUndo(){ LAB.undo.push(JSON.stringify({mode:LAB.mode, file:LAB.file, web:LAB.web, js:LAB.js, py:LAB.py})); if (LAB.undo.length>15) LAB.undo.shift(); $('#labUndo').hidden = false; }
+$('#labUndo').onclick = ()=>{ const s = LAB.undo.pop(); if (!s) return; Object.assign(LAB, JSON.parse(s)); showFile(); saveDraft(); if (LAB.mode==='web') runLab(); };
+$('#langSeg').addEventListener('click', e=>{ const m = e.target.closest('button')?.dataset.mode; if (m && m!==LAB.mode) setMode(m); });
+$('#fileTabs').addEventListener('click', e=>{ const f = e.target.closest('button')?.dataset.f; if (f && LAB.mode==='web'){ LAB.file = f; showFile(); codeEl.focus(); } });
+$('#projName').addEventListener('input', e=>{ LAB.name = e.target.value; saveDraft(); });
+let prevT; function schedulePreview(){ clearTimeout(prevT); prevT = setTimeout(runLab, 700); }
+codeEl.addEventListener('input', ()=>{ setCur(codeEl.value); updGutter(); saveDraft(); if (LAB.mode==='web') schedulePreview(); });
+codeEl.addEventListener('scroll', ()=>{ gutter.scrollTop = codeEl.scrollTop; });
+function insertText(t){ const s = codeEl.selectionStart, en = codeEl.selectionEnd; codeEl.setRangeText(t, s, en, 'end'); codeEl.dispatchEvent(new Event('input')); }
+codeEl.addEventListener('keydown', e=>{
+  const ind = LAB.mode==='py' ? '    ' : '  ';
+  if (e.key==='Tab' && !e.shiftKey){ e.preventDefault(); insertText(ind); }
+  else if (e.key==='Enter' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); runLab(); }
+  else if (e.key==='Enter' && !e.shiftKey){ const line = codeEl.value.slice(0, codeEl.selectionStart).split('\n').pop(); let pad = line.match(/^\s*/)[0]; if (/[:{[(]\s*$/.test(line)) pad += ind; e.preventDefault(); insertText('\n'+pad); }
+});
+
+/* console */
+function con(text, cls=''){ const s = document.createElement('span'); if (cls) s.className = cls; s.textContent = text + '\n'; conEl.appendChild(s); LAB.output += text + '\n'; conEl.scrollTop = conEl.scrollHeight; }
+function conRaw(text, cls=''){ const last = conEl.lastElementChild; if (last && last.dataset.raw===cls){ last.textContent += text; } else { const s = document.createElement('span'); s.dataset.raw = cls; if (cls) s.className = cls; s.textContent = text; conEl.appendChild(s); } LAB.output += text; conEl.scrollTop = conEl.scrollHeight; }
+$('#clearOut').onclick = ()=>{ conEl.innerHTML=''; LAB.output=''; };
+
+/* runner: everything runs inside a sandboxed frame */
+let RUN = 0, runTimer = null;
+function bridge(off){ return `<script>(function(){var P=parent,R=${RUN},O=${off};function f(v){try{if(typeof v==='string')return v;if(v instanceof Error)return v.name+': '+v.message;var j=JSON.stringify(v,null,1);return j===undefined?String(v):j}catch(e){return String(v)}}function s(t,a){P.postMessage({__lab:R,t:t,a:a},'*')}['log','info','warn','error'].forEach(function(k){var o=console[k];console[k]=function(){s(k,[].slice.call(arguments).map(f).join(' '));try{o.apply(console,arguments)}catch(e){}}});window.onerror=function(m,src,l,c,e){s('error',(e&&e.name?e.name+': '+e.message:m)+(l&&l>O?' (line '+(l-O)+')':''));return true};window.addEventListener('unhandledrejection',function(e){s('error','Uncaught (in promise) '+f(e.reason))});window.alert=function(m){s('info','alert: '+m)};window.prompt=function(m){s('warn','prompt() is not available here.');return null};window.__labDone=function(){s('done','')};window.labRan=false;window.labOut=function(k,t){s(k==='err'?'pyerr':'pyout',t)};})();<\/script>`; }
+const PYRUN = [
+  'from browser import window',
+  '_first = not window.labRan',
+  'window.labRan = True',
+  'if _first:',
+  '    import sys, builtins',
+  '    from browser import window',
+  '    class _W:',
+  '        def __init__(self, k): self.k = k',
+  '        def write(self, t): window.labOut(self.k, t)',
+  '        def flush(self): pass',
+  '    sys.stdout = _W("out"); sys.stderr = _W("err")',
+  '    def _input(msg=""):',
+  '        print(str(msg) + "\\n[input() isn\'t supported in Code Lab. Put the value in your code instead.]")',
+  '        return ""',
+  '    builtins.input = _input',
+  '    def _line(e):',
+  '        tb = e.__traceback__',
+  '        n = None',
+  '        while tb is not None:',
+  '            if tb.tb_frame.f_code.co_filename == "main.py": n = tb.tb_lineno',
+  '            tb = tb.tb_next',
+  '        return n or getattr(e, "lineno", None)',
+  '    try:',
+  '        exec(compile(window.__SRC, "main.py", "exec"), {"__name__": "__main__"})',
+  '    except SystemExit:',
+  '        pass',
+  '    except BaseException as _e:',
+  '        try:',
+  '            _n = _line(_e)',
+  '        except Exception:',
+  '            _n = None',
+  '        sys.stderr.write(type(_e).__name__ + ": " + str(_e) + (" (line " + str(_n) + ")" if _n else "") + "\\n")',
+  '    window.__labDone()',
+].join('\n');
+function buildDoc(){
+  if (LAB.mode==='js'){
+    const pre = bridge(2) + '\n<script>\n';
+    return pre + LAB.js.code.replace(/<\/script/gi,'<\\/script') + '\n<\/script><script>__labDone()<\/script>';
+  }
+  if (LAB.mode==='py'){
+    return bridge(0) + `<script>try{Object.defineProperty(window,'indexedDB',{value:undefined,configurable:true})}catch(e){}<\/script><script src="${BRY}/brython.min.js"><\/script><script src="${BRY}/brython_stdlib.js"><\/script><script>window.__SRC=${JSON.stringify(LAB.py.code).replace(/</g,'\\u003c')};<\/script><script type="text/python">\n${PYRUN}\n<\/script><script>if(!window.brython){console.error('Python could not load. Check your connection and try again.');__labDone()}else{try{brython({debug:1,indexeddb:false})}catch(e){console.error(String(e));__labDone()}}<\/script>`;
+  }
+  const head = `<style>\n${LAB.web.css}\n</style>\n${LAB.web.html}\n<script>\n`;
+  const off = (head.match(/\n/g)||[]).length;
+  return bridge(off) + head + LAB.web.js.replace(/<\/script/gi,'<\\/script') + '\n<\/script><script>__labDone()<\/script>';
+}
+function runLab(){
+  RUN++; LAB.output=''; LAB.lastError=false; conEl.innerHTML=''; $('#labFix').hidden = true;
+  if (LAB.mode==='py') con('Starting Python… (the first run loads for a few seconds)', 's');
+  LAB.runStart = performance.now(); LAB.running = true;
+  frame.srcdoc = buildDoc();
+  clearTimeout(runTimer);
+  runTimer = setTimeout(()=>finishRun(true), LAB.mode==='py' ? 25000 : 8000);
+  return new Promise(res=>{ const prev = LAB.onDone; LAB.onDone = out=>{ prev && prev(out); res(out); }; });
+}
+function finishRun(timedOut=false){
+  if (!LAB.running) return; LAB.running = false; clearTimeout(runTimer);
+  if (LAB.mode!=='web'){ con(timedOut ? 'Still running after a while, or it stopped without finishing.' : `Finished in ${Math.round(performance.now()-LAB.runStart)} ms`, 's'); }
+  if (LAB.lastError && sample) $('#labFix').hidden = false;
+  const r = LAB.onDone; LAB.onDone = null; r && r(LAB.output);
+}
+addEventListener('message', e=>{
+  const d = e.data; if (!d || d.__lab!==RUN || e.source!==frame.contentWindow) return;
+  if (d.t==='done') return finishRun();
+  if (d.t==='pyout') return conRaw(d.a, '');
+  if (d.t==='pyerr'){ LAB.lastError = true; return conRaw(d.a, 'e'); }
+  if (d.t==='error') LAB.lastError = true;
+  con(d.a, d.t==='error'?'e': d.t==='warn'?'w': d.t==='info'?'i':'');
+});
+$('#labRun').onclick = ()=> runLab();
+
+/* open / close */
+function openLab(){ if (lab.hidden){ lab.hidden = false; showFile(); if (!LAB.output) { if (LAB.mode==='web') runLab(); else setMode(LAB.mode, true); } } $('#tCode').classList.add('on'); }
+function closeLab(){ lab.hidden = true; $('#projList').hidden = true; $('#tCode').classList.remove('on'); }
+$('#labClose').onclick = closeLab;
+
+/* load code from chat / threads */
+function loadIntoLab(lang, code){
+  const m = langMode(lang); const l = (lang||'').toLowerCase();
+  pushUndo();
+  if (m==='web'){ LAB.mode='web'; if (l==='css'){ LAB.web.css = code; LAB.file='css'; } else { LAB.web.html = code; LAB.file='html'; if (/<script|<style/i.test(code)){ LAB.web.css=''; LAB.web.js=''; } } }
+  else if (m==='js'){ if (/document\.|getElementById|querySelector|canvas/.test(code)){ LAB.mode='web'; LAB.web.js = code; LAB.file='js'; } else { LAB.mode='js'; LAB.js.code = code; } }
+  else { LAB.mode='py'; LAB.py.code = code; }
+  showFile(); saveDraft();
+}
+
+/* projects & examples */
+const projList = $('#projList');
+function projects(){ return LS.get('bo.projects', []); }
+$('#labSave').onclick = ()=>{
+  const ps = projects(); if (!LAB.id) LAB.id = 'p'+Date.now();
+  const rec = {id:LAB.id, name:LAB.name||'Untitled', mode:LAB.mode, web:LAB.web, js:LAB.js, py:LAB.py, updated:Date.now()};
+  const i = ps.findIndex(p=>p.id===LAB.id); if (i>=0) ps[i] = rec; else ps.unshift(rec);
+  LS.set('bo.projects', ps.slice(0,40)); saveDraft(); toast(`Saved “${rec.name}” in this browser`);
+};
+function showList(kind){
+  if (!projList.hidden && projList.dataset.kind===kind){ projList.hidden = true; return; }
+  projList.dataset.kind = kind; projList.hidden = false;
+  if (kind==='examples'){
+    projList.innerHTML = '<h4>Examples</h4>' + EXAMPLES.map((x,i)=>`<div class="row" data-ex="${i}"><span>${esc(x.name)}</span><small>${x.mode==='web'?'Web':x.mode==='js'?'JS':'Python'}</small></div>`).join('');
+  } else {
+    const ps = projects();
+    projList.innerHTML = '<h4>Saved projects</h4>' + (ps.length ? ps.map(p=>`<div class="row" data-p="${p.id}"><span>${esc(p.name)}</span><small>${ago(p.updated)}</small><button class="del" data-del="${p.id}" aria-label="Delete ${esc(p.name)}">×</button></div>`).join('') : '<div class="row"><span>Nothing saved yet. Press Save to keep a project.</span></div>') + '<div class="row" data-new="1"><span>+ New blank project</span></div>';
+  }
+}
+$('#labTemplates').onclick = ()=> showList('examples');
+$('#labProjects').onclick = ()=> showList('projects');
+projList.addEventListener('click', e=>{
+  const del = e.target.closest('[data-del]');
+  if (del){ LS.set('bo.projects', projects().filter(p=>p.id!==del.dataset.del)); showList('projects'); showList('projects'); return; }
+  const row = e.target.closest('.row'); if (!row) return;
+  pushUndo();
+  if (row.dataset.ex){ const x = EXAMPLES[+row.dataset.ex]; LAB.id = null; LAB.name = x.name; LAB.mode = x.mode; if (x.mode==='web'){ LAB.web = x.web(); LAB.file='html'; } else LAB[x.mode] = {code:x.code()}; }
+  else if (row.dataset.p){ const p = projects().find(q=>q.id===row.dataset.p); if (!p) return; Object.assign(LAB, {id:p.id, name:p.name, mode:p.mode, web:p.web, js:p.js, py:p.py, file:'html'}); }
+  else if (row.dataset.new){ LAB.id = null; LAB.name = 'Untitled'; if (LAB.mode==='web'){ LAB.web = {html:'<h1>Hello!</h1>', css:'body { font-family: system-ui, sans-serif; padding: 24px; }', js:"console.log('Ready');"}; LAB.file='html'; } else LAB[LAB.mode] = {code: LAB.mode==='py' ? 'print("Hello from Python!")' : "console.log('Hello from JavaScript!');"}; }
+  else return;
+  projList.hidden = true; showFile(); saveDraft(); setMode(LAB.mode, true); if (LAB.mode!=='web') runLab();
+});
+
+/* download */
+$('#labDownload').onclick = async ()=>{
+  const base = (LAB.name||'project').trim().replace(/[^\w-]+/g,'-').replace(/^-|-$/g,'') || 'project';
+  let filename, data;
+  if (LAB.mode==='web'){ filename = base+'.html'; data = `<!doctype html>\n<html>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>${esc(LAB.name||'Project')}</title>\n<style>\n${LAB.web.css}\n</style>\n</head>\n<body>\n${LAB.web.html}\n<script>\n${LAB.web.js}\n<\/script>\n</body>\n</html>\n`; }
+  else if (LAB.mode==='js'){ filename = base+'.js'; data = LAB.js.code; }
+  else { filename = base+'.py'; data = LAB.py.code; }
+  if (!downloads){ try{ const url = URL.createObjectURL(new Blob([data], {type:'text/plain'})); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 5000); toast('Saved '+filename); }catch{ toast('Couldn’t save the file here.'); } return; }
+  try{ const r = await downloads.save({filename, data}); if (r?.status==='saved') toast('Saved '+filename); }
+  catch(e){ if (e?.code==='unavailable') toast('Downloads aren’t available in this view.'); }
+};
+
+/* Ask Claude inside the lab */
+let labCtl = null;
+async function askLab(request, fix=false){
+  if (labCtl){ labCtl.abort(); return; }
+  if (!sample){ aiChecked ? toast('Connect an AI first.', 'AI settings', openAISettings) : toast('Still connecting, try again in a moment.'); return; }
+  request = (request||'').trim(); if (!request){ $('#labAsk').focus(); return; }
+  const mode = LAB.mode;
+  const files = mode==='web' ? `index.html (body markup):\n${LAB.web.html}\n\nstyle.css:\n${LAB.web.css}\n\nscript.js:\n${LAB.web.js}` : `main.${mode}:\n${LAB[mode].code}`;
+  const env = {
+    web:'a web page shown in a sandboxed frame. Write plain HTML (body markup only), CSS and JavaScript. No network requests and no external libraries or images; draw with CSS, SVG or canvas.',
+    js:'plain JavaScript run in a browser sandbox with no visible page; show results with console.log.',
+    py:'Python 3 run in the browser with Brython: standard library only, no pip packages, no input(), no files, no network; show results with print().',
+  }[mode];
+  const shape = mode==='web' ? '{"html": "...", "css": "...", "js": "...", "note": "one short sentence about what you made or changed"}' : '{"code": "...", "note": "one short sentence about what you made or changed"}';
+  const prompt = `You write code in a beginner-friendly Code Lab. The program is ${env}\nWrite clean, complete, working code with a few helpful comments. Never leave placeholders. If the request is about money or trading, use clearly made-up example numbers.\n\nCurrent files:\n${files.slice(0, 30000)}\n${fix ? `\nThe last run printed this (it has an error to fix):\n${LAB.output.slice(-3000)}\n` : ''}\nRequest: ${request}\n\nReply with only a JSON object shaped like ${shape}, holding the full new contents of every file.`;
+  labCtl = new AbortController();
+  $('#labAskBtn').textContent = 'Stop'; $('#labAiStatus').textContent = 'The AI is writing code…';
+  try{
+    const r = await sample.json(prompt, {signal: labCtl.signal, cache:false});
+    if (!r || typeof r!=='object') throw {code:'invalid_json'};
+    pushUndo();
+    if (mode==='web'){ for (const k of ['html','css','js']) if (typeof r[k]==='string') LAB.web[k] = r[k]; }
+    else if (typeof r.code==='string') LAB[mode].code = r.code;
+    if (LAB.mode!==mode) LAB.mode = mode;
+    showFile(); saveDraft();
+    $('#labAiStatus').textContent = r.note ? String(r.note).slice(0,120) : 'Done';
+    if (!fix) $('#labAsk').value = '';
+    runLab();
+  }catch(e){ $('#labAiStatus').textContent = e?.code==='cancelled' ? 'Stopped' : aiErr(e); }
+  finally{ labCtl = null; $('#labAskBtn').textContent = 'Ask AI'; }
+}
+$('#labAskBtn').onclick = ()=> askLab($('#labAsk').value);
+$('#labAsk').addEventListener('keydown', e=>{ if (e.key==='Enter'){ e.preventDefault(); askLab($('#labAsk').value); } });
+$('#labFix').onclick = ()=> askLab('Fix the error shown in the output so the program runs correctly.', true);
+
+/* ================= chat ================= */
+const CHAT = { turns: LS.get('bo.chat', []), attach: [], busy: null, pending: null, speak: LS.get('bo.speak', false) };
+const chatLog = $('#chatLog'), chatInput = $('#chatInput');
+const SUGG = [
+  'Explain what a stop-loss is, like I’m new to trading',
+  'Build me a web page that charts made-up stock prices with a 5-day moving average',
+  'Write Python that simulates 100 coin-flip trades and prints the win rate',
+  'Text my brother to make a dentist appointment for Friday',
+  'Have the trading and IT agents team up on a Python script that checks my trades file for mistakes',
+];
+function toolsOk(){ return !!sampleLimits?.tools; }
+const RULES = ()=> `You are Jarvis, the AI assistant built into this app: a 3D desert world where little robots are AI agents working on coding projects (${REPOS.map(r=>r.name).join(', ')}). The app has a Code Lab that runs web pages (HTML, CSS, JavaScript), plain JavaScript, and Python (Brython: standard library only, no input()).
+The person chatting is learning to code and builds things for fun and to make money; they like finance and trading, and they are studying to become an IT Support Specialist. Be friendly, direct and fairly short. Use markdown. Put code in fenced blocks tagged html, css, javascript or python so they can run it with one click.
+${toolsOk() ? `You are Jarvis, the coordinator of all the projects. Every project has its own files and its own robot agent, and the agents work as a team. You can list projects, read any file, create, change, delete and run files, hand tasks to project agents with delegate_task (each agent can also hand pieces to other agents), use the Code Lab, and change the 3D world. When a request touches several projects, split it up: do the quick parts yourself and delegate the bigger parts to the right agents. Everything that changes something asks the user first through an Allow button; reading is free. If they say no, do not retry; explain. After acting, briefly say what you did and what the agents are now working on. Projects: ${REPOS.map(r=>r.id+' = '+r.name).join(', ')}.` : ''}
+For trading or money questions, explain clearly and add one short line that it isn’t financial advice.
+Messages for other people: when they ask you to text, message, tell, remind or ask someone something, write the message in a fenced block tagged message. Its first line is "To: <who>", then the message itself, short and natural, starting with "Hi, this is ${userName() ? userName()+'’s' : '[their name]’s'} AI assistant." ${userName() ? '' : (toolsOk() ? 'You do not know their name yet: ask for it, then save it with set_user_name before writing the message.' : 'You do not know their name yet: ask for it before writing the message.')} You cannot send texts or make calls yourself; they copy the message and send it. Never pretend to be them.`;
+function userName(){ try{ return (localStorage.getItem('bo.name')||'').slice(0,40); }catch{ return ''; } }
+function chatTools(){
+  const ctx = CHAT.ctx;
+  const ask = (title, detail, signal)=> askUser({who:'Jarvis', color:'#3fe0a4', tid:null, group:ctx.runKey, title, detail, signal});
+  return [
+    {name:'list_projects', description:'List every project with its id, file count and how many agents are working. Free.',
+      execute(){ return REPOS.map(r=>({id:r.id, name:r.name, files:Object.keys(files(r.id)).length, working:threads.filter(t=>t.repo===r.id && t.status==='working').length, threads:threads.filter(t=>t.repo===r.id).length})); }},
+    ...fileTools(ctx),
+    {name:'delegate_task', description:'Start a project’s robot agent on a task. The agent can read and change that project’s files and work with the other agents. Asks the user first. Returns right away; the agent keeps working in the world.',
+      inputSchema:{type:'object', properties:{project:{type:'string', enum:REPOS.map(r=>r.id)}, task:{type:'string', description:'clear instructions for that agent'}}, required:['project','task']},
+      async execute(inp, {signal}){
+        const id = String(inp.project), task = String(inp.task||'').trim();
+        if (!repoById[id]) throw new Error('Unknown project'); if (!task) throw new Error('Give the task');
+        if (!await ask(`Start the ${repoById[id].name} agent`, task.slice(0,600), signal)) throw new Error(DENIED);
+        const t = startTask(id, task, false); if (!t) throw new Error('That project has no room for another task');
+        ctx.log({k:'tool', tool:'Team', text:`${repoById[id].name} agent: ${t.title}`}); return 'Started thread: '+t.title;
+      }},
+    {name:'write_code_lab', description:'Put a complete program into the Code Lab, open it, run it, and return what it printed (web pages also show a preview). mode "web" takes html (body markup), css and js; mode "js" or "py" takes code. Asks the user first.',
+      inputSchema:{type:'object', properties:{mode:{type:'string', enum:['web','js','py']}, name:{type:'string', description:'short project name'}, html:{type:'string'}, css:{type:'string'}, js:{type:'string'}, code:{type:'string'}}, required:['mode']},
+      async execute(inp, {signal}){
+        const m = String(inp.mode); if (!['web','js','py'].includes(m)) throw new Error('mode must be web, js or py');
+        const body = m==='web' ? [inp.html, inp.css, inp.js].filter(Boolean).join('\n') : String(inp.code ?? '');
+        if (!await ask(`Put “${String(inp.name||'a program').slice(0,40)}” in the Code Lab and run it`, preview(body, 10), signal)) throw new Error(DENIED);
+        pushUndo(); LAB.mode = m; LAB.id = null;
+        if (m==='web'){ LAB.web = {html:String(inp.html ?? ''), css:String(inp.css ?? ''), js:String(inp.js ?? '')}; LAB.file='html'; }
+        else LAB[m] = {code:String(inp.code ?? '')};
+        if (inp.name) LAB.name = String(inp.name).slice(0,40);
+        openLab(); showFile(); saveDraft();
+        ctx.log({k:'tool', tool:'Run', text:`“${LAB.name}” in the Code Lab`});
+        const out = await runLab();
+        return (m==='web' ? 'Preview is showing. ' : '') + (out ? 'Output:\n'+out.slice(-4000) : '(no output)') + (LAB.lastError ? '\nThere was an error.' : '');
+      }},
+    {name:'read_code_lab', description:'Read the Code Lab: its mode, the files and the last output. Free.',
+      execute(){ return {mode:LAB.mode, name:LAB.name, files: LAB.mode==='web' ? LAB.web : {code:LAB[LAB.mode].code}, output: LAB.output.slice(-3000)}; }},
+    {name:'control_world', description:'Change the 3D world: time of day (dawn, day, dusk, night or auto = follow the clock), sandstorm on/off, or fly the camera to a project. Asks the user first.',
+      inputSchema:{type:'object', properties:{time:{type:'string', enum:['dawn','day','dusk','night','auto']}, storm:{type:'boolean'}, focus_project:{type:'string', enum:REPOS.map(r=>r.id)}}},
+      async execute(inp, {signal}){
+        const parts = [inp.time && `time → ${inp.time}`, typeof inp.storm==='boolean' && `sandstorm ${inp.storm?'on':'off'}`, inp.focus_project && `look at ${repoById[inp.focus_project]?.name}`].filter(Boolean);
+        if (!parts.length) throw new Error('Nothing to change');
+        if (!await ask('Change the world: '+parts.join(', '), '', signal)) throw new Error(DENIED);
+        if (inp.time){ if (inp.time==='auto'){ T.mode='auto'; T.play=false; } else { T.mode='manual'; T.play=false; T.hour = {dawn:6, day:12, dusk:18.6, night:22}[inp.time]; } syncTimebar(); }
+        if (typeof inp.storm==='boolean' && inp.storm!==stormOn) $('#tStorm').click();
+        if (inp.focus_project && repoById[inp.focus_project]) selectRepo(inp.focus_project, true);
+        ctx.log({k:'tool', tool:'World', text:parts.join(', ')}); return 'Done';
+      }},
+    {name:'set_user_name', description:'Save the user’s first name so messages you draft can say “Hi, this is <name>’s AI assistant”. Use when they tell you their name.',
+      inputSchema:{type:'object', properties:{name:{type:'string'}}, required:['name']},
+      execute(inp){ const n = String(inp.name||'').trim().slice(0,40); if (!n) throw new Error('empty name'); try{ localStorage.setItem('bo.name', n); }catch{} ctx.log({k:'tool', tool:'Saved', text:'your name: '+n}); return 'Saved'; }},
+  ].slice(0, sampleLimits?.tools?.maxCount || 20);
+}
+function chatEmpty(){
+  if (!aiChecked) return `<div class="chat-empty"><h3>Connecting to Claude…</h3></div>`;
+  if (!sample) return `<div class="chat-empty"><h3>Connect an AI</h3><p>On claude.ai, Jarvis uses your Claude account. Opened anywhere else, like the file you downloaded, it needs an AI service. Google Gemini has a free tier: paste a free key once and the chat, the robot agents and Ask AI all work.</p><div class="sugg"><button type="button" id="aiSetupBtn">Set up AI</button></div></div>`;
+  return `<div class="chat-empty"><h3>Ask me anything</h3><p>Questions about code or trading, pictures to look at, or things to build. I can write code straight into the Code Lab and run it.</p><div class="sugg">${SUGG.map(s=>`<button type="button">${esc(s)}</button>`).join('')}</div></div>`;
+}
+function renderChat(){
+  const view = CHAT.turns.filter(t=>!t.hide);
+  let h = view.length || CHAT.pending ? '' : chatEmpty();
+  for (const t of view){
+    if (t.role==='user') h += `<div class="c-user">${t.urls?.length ? `<div class="c-imgs">${t.urls.map(u=>`<img src="${u}" alt="Picture you sent">`).join('')}</div>` : ''}${esc(t.content.replace(/\n\[Attached \d+ pictures?\]$/,''))}${!t.urls?.length && /\[Attached \d+ picture/.test(t.content) ? `<div class="c-tool">🖼 ${t.content.match(/Attached (\d+)/)[1]} picture(s)</div>` : ''}</div>`;
+    else h += `<div class="c-bot md ${t.err?'err':''}">${t.err ? esc(t.content) : md(t.content)}</div>`;
+  }
+  if (CHAT.pending) h += `<div id="pending">${pendingHtml()}</div>`;
+  chatLog.innerHTML = h;
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+function pendingHtml(){ const p = CHAT.pending; const wait = APPROVALS.some(a=>a.group===CHAT.ctx?.runKey); return p.tools.map(x=>`<div class="c-tool">✓ ${esc(x)}</div>`).join('') + (p.text ? `<div class="c-bot md">${md(p.text)}</div>` : '') + (wait ? `<div class="m-working ask"><span class="dot ask"></span>Waiting for your OK at the top of the screen</div>` : p.text ? '' : `<div class="m-working"><span class="dot working"></span>Thinking…</div>`); }
+function updPending(){ const el = document.getElementById('pending'); if (!el || !CHAT.pending) return; const stick = chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 60; el.innerHTML = pendingHtml(); if (stick) chatLog.scrollTop = chatLog.scrollHeight; }
+chatLog.addEventListener('click', e=>{ if (e.target.closest('#aiSetupBtn')){ openAISettings(); return; } const b = e.target.closest('.sugg button'); if (b) sendChat(b.textContent); });
+function saveChat(){ LS.set('bo.chat', CHAT.turns.slice(-40).map(({role,content,err})=>({role,content,err}))); }
+function setSending(b){ $('#sendBtn').textContent = b ? 'Stop' : 'Send'; }
+async function sendChat(text, voice=false){
+  if (CHAT.busy){ CHAT.busy.abort(); return; }
+  text = (text||'').trim(); const imgs = CHAT.attach.slice();
+  if (!text && !imgs.length) return;
+  if (!sample){ aiChecked ? openAISettings() : toast('Still connecting, try again in a moment.'); return; }
+  try{ speechSynthesis.cancel(); }catch{}
+  const content = (text || 'What’s in this picture?') + (imgs.length ? `\n[Attached ${imgs.length} picture${imgs.length>1?'s':''}]` : '');
+  CHAT.turns.push({role:'user', content, urls: imgs.map(f=>URL.createObjectURL(f))});
+  CHAT.attach = []; renderAttach(); chatInput.value = '';
+  CHAT.pending = {text:'', tools:[]}; renderChat();
+  const ctl = CHAT.busy = new AbortController(); setSending(true);
+  const turns = CHAT.turns.filter(t=>!t.err).slice(-20).map(t=>({role:t.role, content:t.content}));
+  while (turns.length && turns[0].role!=='user') turns.shift();
+  const opts = {signal: ctl.signal, onText: ({text})=>{ if (CHAT.pending){ CHAT.pending.text = text; updPending(); } }};
+  if (imgs.length) opts.images = imgs;
+  CHAT.ctx = {scope:null, who:'Jarvis', color:'#3fe0a4', tid:null, runKey:'chat-'+Date.now(), log:m=>{ CHAT.pending?.tools.push(`${m.tool}: ${m.text}`); updPending(); }};
+  if (toolsOk()) opts.tools = chatTools(); else opts.cache = false;
+  try{
+    const r = await sample([{role:'user', content:RULES()}, ...turns], opts);
+    const tools = CHAT.pending?.tools || [];
+    CHAT.turns.push({role:'assistant', content: (tools.length ? tools.map(x=>'✓ '+x).join('\n')+'\n\n' : '') + r.text + (r.truncated ? '\n\n(Cut short. Ask me to continue.)' : '')});
+    if (CHAT.speak || voice) speak(r.text);
+  }catch(e){
+    if (e?.text) CHAT.turns.push({role:'assistant', content:e.text});
+    if (e?.code!=='cancelled') CHAT.turns.push({role:'assistant', content:aiErr(e), err:true});
+  }finally{
+    autoAllow.delete(CHAT.ctx.runKey); for (const a of APPROVALS.filter(a=>a.group===CHAT.ctx.runKey)) a.resolve(false);
+    CHAT.pending = null; CHAT.busy = null; setSending(false); saveChat(); renderChat();
+  }
+}
+$('#chatForm').addEventListener('submit', e=>{ e.preventDefault(); sendChat(chatInput.value); });
+chatInput.addEventListener('keydown', e=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendChat(chatInput.value); } });
+$('#aiBtn').onclick = ()=> openAISettings();
+$('#chatNew').onclick = ()=>{ if (CHAT.busy) CHAT.busy.abort(); CHAT.turns = []; saveChat(); renderChat(); chatInput.focus(); };
+
+/* pictures */
+function addFiles(list){
+  const lim = sampleLimits?.images;
+  if (!lim){ aiChecked ? toast('Connect an AI first to send pictures.', 'AI settings', openAISettings) : toast('Still connecting, try again in a moment.'); return; }
+  for (const f of list){
+    if (!lim.mediaTypes.includes(f.type)){ toast('Use a JPG, PNG, WebP or GIF picture.'); continue; }
+    if (f.size > lim.maxInputBytes){ toast('That picture is too big.'); continue; }
+    if (CHAT.attach.length >= lim.maxCount){ toast(`Up to ${lim.maxCount} pictures per message.`); break; }
+    CHAT.attach.push(f);
+  }
+  renderAttach();
+}
+function renderAttach(){
+  const row = $('#attachRow');
+  for (const img of row.querySelectorAll('img')) URL.revokeObjectURL(img.src);
+  row.hidden = !CHAT.attach.length;
+  row.innerHTML = CHAT.attach.map((f,i)=>`<div class="chip"><img src="${URL.createObjectURL(f)}" alt="${esc(f.name||'picture')}"><button type="button" data-rm="${i}" aria-label="Remove picture">×</button></div>`).join('');
+}
+$('#attachRow').addEventListener('click', e=>{ const b = e.target.closest('[data-rm]'); if (b){ CHAT.attach.splice(+b.dataset.rm,1); renderAttach(); } });
+$('#attachBtn').onclick = ()=> $('#fileIn').click();
+$('#fileIn').addEventListener('change', e=>{ addFiles([...e.target.files]); e.target.value=''; });
+chatInput.addEventListener('paste', e=>{ const fs = [...(e.clipboardData?.files||[])].filter(f=>f.type.startsWith('image/')); if (fs.length){ e.preventDefault(); addFiles(fs); } });
+const chatForm = $('#chatForm');
+chatForm.addEventListener('dragover', e=>{ e.preventDefault(); chatForm.classList.add('drag'); });
+chatForm.addEventListener('dragleave', ()=> chatForm.classList.remove('drag'));
+chatForm.addEventListener('drop', e=>{ e.preventDefault(); chatForm.classList.remove('drag'); addFiles([...(e.dataTransfer?.files||[])].filter(f=>f.type.startsWith('image/'))); });
+
+/* voice: talk in, read out */
+function speak(text){
+  if (!('speechSynthesis' in window)) return;
+  const plain = text.replace(/```[\s\S]*?```/g,' (code is on screen) ').replace(/[*#`>]/g,'').replace(/\n+/g,'. ').slice(0, 2500);
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(plain); u.rate = 1.03; speechSynthesis.speak(u); }catch{}
+}
+$('#speakBtn').onclick = e=>{ CHAT.speak = !CHAT.speak; LS.set('bo.speak', CHAT.speak); e.currentTarget.classList.toggle('on', CHAT.speak); e.currentTarget.setAttribute('aria-pressed', CHAT.speak); if (!CHAT.speak) try{ speechSynthesis.cancel(); }catch{} else toast('Claude will read replies out loud'); };
+$('#speakBtn').classList.toggle('on', CHAT.speak);
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+const micTip = 'Tip: use the microphone key on your keyboard (phone keyboards and Mac/Windows dictation work in any text box).';
+$('#micBtn').onclick = ()=>{
+  if (rec){ rec.stop(); return; }
+  if (!SR){ toast('This browser can’t listen here. '+micTip); return; }
+  try{ rec = new SR(); }catch{ rec = null; toast(micTip); return; }
+  rec.lang = navigator.language || 'en-US'; rec.interimResults = true; rec.continuous = false;
+  const base = chatInput.value.trim(); let finalT = '';
+  rec.onresult = ev=>{ let interim=''; for (let i=ev.resultIndex;i<ev.results.length;i++){ const r = ev.results[i]; if (r.isFinal) finalT += r[0].transcript; else interim += r[0].transcript; } chatInput.value = (base ? base+' ' : '') + finalT + interim; };
+  rec.onerror = ev=>{ if (ev.error==='not-allowed' || ev.error==='service-not-allowed') toast('The microphone is blocked on this page. '+micTip); else if (ev.error!=='aborted' && ev.error!=='no-speech') toast('Couldn’t hear that. Try again.'); };
+  rec.onend = ()=>{ $('#micBtn').classList.remove('rec'); rec = null; if (finalT.trim()) sendChat(chatInput.value, true); };
+  try{ rec.start(); $('#micBtn').classList.add('rec'); }catch{ rec = null; toast(micTip); }
+};
+
+function aiReady(){
+  $('#chatStatus').textContent = aiLabel();
+  if (!S.tab || S.tab==='chat') renderChat();
+}
+
+/* ================= sidebar tabs, toolbar, shortcuts ================= */
+function setTab(t){
+  S.tab = t;
+  $('#tabThreads').classList.toggle('on', t==='threads'); $('#tabChat').classList.toggle('on', t==='chat');
+  $('#sbBody').hidden = t!=='threads'; $('#chat').hidden = t!=='chat';
+  if (t==='chat'){ renderChat(); if (innerWidth>=760) setTimeout(()=>chatInput.focus(), 60); }
+}
+$('#tabThreads').onclick = ()=> setTab('threads');
+$('#tabChat').onclick = ()=> setTab('chat');
+$('#tChat').onclick = ()=>{ setSidebar(true); setTab('chat'); };
+$('#tCode').onclick = ()=> lab.hidden ? openLab() : closeLab();
+let stormOn = false, STORM = 0;
+$('#tStorm').onclick = e=>{ stormOn = !stormOn; e.currentTarget.classList.toggle('on', stormOn); toast(stormOn ? 'Sandstorm rolling in' : 'Skies clearing'); };
+document.addEventListener('keydown', e=>{
+  if (e.target.closest('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k==='c'){ e.preventDefault(); setSidebar(true); setTab('chat'); }
+  else if (k==='k'){ e.preventDefault(); lab.hidden ? openLab() : closeLab(); }
+  else if (k==='n'){ e.preventDefault(); openNew(); }
+});
+
+/* ================= real AI agents for new work ================= */
+function startTask(repoId, text, focus=true, extra={}){
+  const repo = repoById[repoId]; if (!repo) return null;
+  const s = freeSlot(repo); if (!s) return null;
+  const title = text.length>52 ? text.slice(0,50).trim()+'…' : text.charAt(0).toUpperCase()+text.slice(1);
+  const t = makeThread(repo.id, title, 'working', 0, Date.now(), text);
+  t.id = 'r'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); t.real = true; Object.assign(t, extra);
+  t.dur = sample ? 45+rnd()*20 : 50+rnd()*50; threads.push(t); saveThreads();
+  const st = makeStation(t, s, true); assignWorkers(st);
+  if (sample) runAgentAI(t);
+  if (focus){ selectRepo(repo.id); selectThread(t.id, true); }
+  renderSidebar();
+  return t;
+}
+async function runAgentAI(t){
+  if (!sample) return;
+  const repo = repoById[t.repo]; if (!repo) return;
+  t.ctl?.abort();
+  t.steps = []; t.shown = 0; t.ai = 'pending'; t.aiText = ''; t.real = true;
+  const convo = t.msgs.filter(m=>m.k==='user' || m.k==='agent').slice(-12).map(m=>({role:m.k==='user'?'user':'assistant', content:m.text}));
+  while (convo.length && convo[0].role!=='user') convo.shift();
+  const tools = toolsOk();
+  const fileList = Object.keys(files(repo.id)).join(', ') || '(no files yet)';
+  const team = REPOS.filter(r=>r.id!==repo.id).map(r=>`${r.id} (${r.name}, ${Object.keys(files(r.id)).length} files)`).join('; ');
+  const lead = tools
+    ? `You are the robot agent for the project "${repo.name}" (id: ${repo.id}) inside Jarvis, a world where every project has its own agent and the agents work together as a team.
+Your project's files: ${fileList}
+Teammates (other projects): ${team}
+Do the task in the conversation below for real by using your tools. Read files before changing them. Create or update files with write_file, always sending the full content. Files are plain text: markdown notes, code (python, javascript, html, css), JSON or CSV. You may read any project's files. If part of the job belongs to another project, hand it over with ask_project${(t.depth||0)>=2 ? ' (not available now: too many hand-offs already)' : ''}. Anything that changes something asks the user first; if they say no, do not retry it, just explain. Python runs with the standard library only and no input(). Finish with a short markdown summary of what you did and what is left.`
+    : `You are an AI agent working in the project "${repo.name}". Do the task in the conversation below for real: a two-line plan, then the actual code or answer in markdown, with code in fenced blocks tagged html, css, javascript or python. Keep it under 450 words.`;
+  const runKey = 'run-'+t.id+'-'+Date.now();
+  const ctx = {scope:repo.id, who:`${repo.name} agent`, color:repo.color, tid:t.id, runKey,
+    log:m=>{ t.msgs.push(m); t.updated = Date.now(); if (S.drawer===t.id) renderDrawer(); saveThreads(); }};
+  const ctl = t.ctl = new AbortController();
+  const opts = {signal:ctl.signal, onText:({text})=>{ t.aiText = text; if (S.drawer===t.id) renderDrawer(); }};
+  if (tools) opts.tools = [...fileTools(ctx), askProjectTool(ctx, t)].slice(0, sampleLimits.tools.maxCount || 10); else opts.cache = false;
+  try{
+    const r = await sample([{role:'user', content:lead}, ...convo], opts);
+    t.msgs.push({k:'agent', text:r.text + (r.truncated ? '\n\n(Cut short. Reply “continue” to keep going.)' : '')});
+  }catch(e){ t.msgs.push({k:'agent', text:(e?.text ? e.text+'\n\n' : '') + (e?.code==='cancelled' ? 'Stopped.' : aiErr(e))}); }
+  finally{ autoAllow.delete(runKey); for (const a of APPROVALS.filter(a=>a.group===runKey)) a.resolve(false); if (t.ctl===ctl) t.ctl = null; }
+  t.ai = 'done'; t.aiText = ''; t.progress = Math.max(t.progress, .999);
+  if (S.drawer===t.id) renderDrawer();
+  saveThreads();
+}
+
+/* ================= project files (shared by every agent) ================= */
+const L = a => a.join('\n');
+function seedFiles(){
+  return {
+    'bot-oasis': {
+      'README.md': L(['# bot-oasis','The 3D world you are looking at. Ideas and notes for improving it live here.','','## Ideas','- Weather besides sandstorms','- Names floating over the robots','- A billboard that shows the time']),
+    },
+    'glowfall': {
+      'README.md': L(['# glowfall-game','Notes and code for Glowfall, an original browser game.','','## To do','- Write the game idea in one paragraph','- List the first three levels']),
+    },
+    'trading': {
+      'README.md': L(['# trading-journal','A simple trading journal: log trades in journal/trades.csv and work out stats.','The rows in trades.csv are made-up examples. Replace them with your own.']),
+      'journal/trades.csv': L(['date,ticker,side,entry,exit,shares','2026-10-01,EXMPL,long,10.00,10.80,50','2026-10-03,SAMPL,long,25.50,24.90,20','2026-10-07,EXMPL,long,10.40,11.10,40']),
+      'stats/winrate.py': L(['# Win rate from a list of trades (entry, exit, shares). Example numbers.','trades = [(10.00, 10.80, 50), (25.50, 24.90, 20), (10.40, 11.10, 40)]','','wins = [t for t in trades if t[1] > t[0]]','profit = sum((exit - entry) * shares for entry, exit, shares in trades)','print(f"Trades: {len(trades)}")','print(f"Win rate: {len(wins) / len(trades):.0%}")','print(f"Total profit: ${profit:,.2f}")']),
+    },
+    'chess': {
+      'README.md': L(['# chess-club-site','Website for the school chess club.']),
+      'pages/index.html': L(['<h1>Chess Club</h1>','<p>We meet every week to play, learn openings and run small tournaments. Everyone is welcome, beginners too.</p>']),
+    },
+    'aiml': {
+      'README.md': L(['# ai-ml-notes','Learning AI from scratch: small experiments in plain Python.']),
+      'nn/perceptron.py': L(['# A single perceptron learning the AND gate (plain Python, no libraries)','data = [((0, 0), 0), ((0, 1), 0), ((1, 0), 0), ((1, 1), 1)]','w, b, lr = [0.0, 0.0], 0.0, 0.1','','for epoch in range(20):','    for (x1, x2), target in data:','        out = 1 if w[0] * x1 + w[1] * x2 + b > 0 else 0','        err = target - out','        w[0] += lr * err * x1','        w[1] += lr * err * x2','        b += lr * err','','for (x1, x2), target in data:','    out = 1 if w[0] * x1 + w[1] * x2 + b > 0 else 0','    print(x1, x2, "->", out, "(want", str(target) + ")")']),
+    },
+    'it-support': {
+      'README.md': L(['# it-support-study','Study notes, labs and practice for becoming an IT Support Specialist.']),
+      'notes/networking.md': L(['# Networking basics','- **IP address**: the address of a device on a network (IPv4 looks like 192.168.1.20).','- **Subnet mask**: says which part of the IP is the network and which part is the device (255.255.255.0 = /24).','- **Default gateway**: the router a device sends traffic to when it leaves the local network.','- **DNS**: turns names (example.com) into IP addresses.','- **DHCP**: hands out IP addresses automatically.','','## First checks when "the internet is down"','1. Is the cable plugged in or Wi-Fi connected?','2. Does the device have an IP? (`ipconfig` on Windows, `ip a` on Linux)','3. Can it ping the gateway? Then ping 8.8.8.8, then a name like example.com.','4. If IPs work but names fail, it is probably DNS.']),
+      'flashcards/ports.json': L(['{','  "20/21": "FTP",','  "22": "SSH",','  "23": "Telnet",','  "25": "SMTP",','  "53": "DNS",','  "67/68": "DHCP",','  "80": "HTTP",','  "110": "POP3",','  "143": "IMAP",','  "443": "HTTPS",','  "3389": "RDP"','}']),
+    },
+  };
+}
+const FS = {data:null};
+try{ FS.data = JSON.parse(localStorage.getItem('bo.files') || 'null'); }catch{ FS.data = null; }
+if (!FS.data || typeof FS.data!=='object'){ FS.data = seedFiles(); }
+for (const p of REPOS) if (!FS.data[p.id]) FS.data[p.id] = (seedFiles()[p.id]) || {'README.md': `# ${p.name}\n`};
+function saveFS(){ try{ localStorage.setItem('bo.files', JSON.stringify(FS.data)); return true; }catch{ toast('Browser storage is full. Delete some files to make room.'); return false; } }
+saveFS();
+function files(id){ return FS.data[id] || (FS.data[id] = {}); }
+function normPath(p){
+  p = String(p||'').trim().replace(/\\/g,'/').replace(/^\.?\/+/,'').replace(/\/{2,}/g,'/');
+  if (!p || p.length>120 || p.split('/').some(s=>s==='..' || s==='.' || !s) || !/^[\w .\-\/]+$/.test(p)) throw new Error('Use a simple file path like notes/ideas.md');
+  return p;
+}
+const extMode = p => /\.py$/i.test(p) ? 'py' : /\.(m?js)$/i.test(p) ? 'js' : /\.html?$/i.test(p) ? 'web' : /\.css$/i.test(p) ? 'web' : null;
+function preview(c, n=14){ const ls = String(c).split('\n'); return ls.slice(0,n).join('\n') + (ls.length>n ? `\n… ${ls.length-n} more lines` : ''); }
+
+/* ================= saved threads ================= */
+let thrT;
+function saveThreads(){
+  clearTimeout(thrT);
+  thrT = setTimeout(()=>{ try{ localStorage.setItem('bo.threads', JSON.stringify(threads.filter(t=>t.real).slice(-60).map(t=>({id:t.id, repo:t.repo, title:t.title, status:t.status, updated:t.updated, parent:t.parent||null, depth:t.depth||0, msgs:t.msgs.slice(-60).map(m=>({...m, text:String(m.text).slice(0,8000)}))})))); }catch{} }, 500);
+}
+
+/* ================= approvals ================= */
+const APPROVALS = []; const autoAllow = new Set(); let apSeq = 0;
+function askUser({who, color, title, detail, group, tid, signal}){
+  if (group && autoAllow.has(group)) return Promise.resolve(true);
+  return new Promise(res=>{
+    const a = {id:'ap'+(++apSeq), who, color, title, detail, group, tid, done:false};
+    a.resolve = v=>{ if (a.done) return; a.done = true; APPROVALS.splice(APPROVALS.indexOf(a),1); renderApprovals(); refreshWaiting(); res(v); };
+    APPROVALS.push(a); renderApprovals(); refreshWaiting();
+    if (signal){ if (signal.aborted) a.resolve(false); else signal.addEventListener('abort', ()=>a.resolve(false), {once:true}); }
+  });
+}
+const DENIED = 'The user said no, or did not answer in time. Do not try this same action again; tell them what you wanted to do and why.';
+function renderApprovals(){
+  const box = $('#approvals');
+  box.hidden = !APPROVALS.length;
+  box.innerHTML = APPROVALS.slice(0,3).map(a=>`<div class="ap-card panel" role="alertdialog" aria-label="Permission request">
+    <div class="ap-who"><i style="background:${a.color}"></i>${esc(a.who)} wants to</div>
+    <div class="ap-title">${esc(a.title)}</div>
+    ${a.detail ? `<pre class="ap-detail">${esc(a.detail)}</pre>` : ''}
+    <div class="ap-actions"><button class="btn-ghost" data-ap="${a.id}" data-act="no">Don’t allow</button>${a.group ? `<button class="btn-ghost" data-ap="${a.id}" data-act="all">Allow all for this task</button>` : ''}<button class="btn-primary" data-ap="${a.id}" data-act="yes">Allow</button></div>
+  </div>`).join('') + (APPROVALS.length>3 ? `<div class="ap-more">${APPROVALS.length-3} more waiting</div>` : '');
+}
+$('#approvals').addEventListener('click', e=>{
+  const b = e.target.closest('[data-ap]'); if (!b) return;
+  const a = APPROVALS.find(x=>x.id===b.dataset.ap); if (!a) return;
+  if (b.dataset.act==='all'){ autoAllow.add(a.group); for (const o of APPROVALS.filter(x=>x.group===a.group)) o.resolve(true); }
+  else a.resolve(b.dataset.act==='yes');
+});
+function refreshWaiting(){
+  let changed = false;
+  for (const t of threads){ const w = APPROVALS.some(a=>a.tid===t.id); if (!!t.waiting!==w){ t.waiting = w; changed = true; } }
+  if (changed){ renderSidebar(); if (S.sel) fillPopup(); if (S.drawer) renderDrawer(); }
+  if (CHAT.pending) updPending();
+}
+
+/* ================= tools shared by agents and the chat ================= */
+function fileTools(ctx){
+  const ids = REPOS.map(r=>r.id);
+  const pick = inp=>{ const id = String(inp.project || ctx.scope || ''); if (!repoById[id]) throw new Error('Unknown project. Use one of: '+ids.join(', ')); return id; };
+  const label = (id, path)=> (id===ctx.scope ? '' : repoById[id].name+'/') + path;
+  const changeTarget = inp=>{ const id = pick(inp); if (ctx.scope && id!==ctx.scope) throw new Error('You can only change your own project. Use ask_project to have that project’s agent do it.'); return id; };
+  const proj = {type:'string', enum:ids, description: ctx.scope ? 'project id (default: your own)' : 'project id'};
+  return [
+    {name:'list_files', description:'List the files in a project, with sizes. Free, no permission needed.',
+      inputSchema:{type:'object', properties:{project:proj}, required: ctx.scope ? [] : ['project']},
+      execute(inp){ const id = pick(inp); return Object.entries(files(id)).map(([path,c])=>({path, chars:c.length})); }},
+    {name:'read_file', description:'Read a file from any project. Free, no permission needed.',
+      inputSchema:{type:'object', properties:{project:proj, path:{type:'string'}}, required: ctx.scope ? ['path'] : ['project','path']},
+      execute(inp){ const id = pick(inp); const path = normPath(inp.path); const c = files(id)[path]; if (c==null) throw new Error('No file at '+path); ctx.log({k:'tool', tool:'Read', text:label(id,path)}); return c.slice(0, 30000); }},
+    {name:'write_file', description:'Create or replace a file (send the FULL new content). Asks the user first.',
+      inputSchema:{type:'object', properties:{project:proj, path:{type:'string'}, content:{type:'string'}, summary:{type:'string', description:'one line: what this change does'}}, required: ctx.scope ? ['path','content'] : ['project','path','content']},
+      async execute(inp, {signal}){
+        const id = changeTarget(inp); const path = normPath(inp.path); const content = String(inp.content ?? '');
+        if (content.length > 200000) throw new Error('File too big (200,000 characters max).');
+        const old = files(id)[path];
+        const ok = await askUser({who:ctx.who, color:ctx.color, tid:ctx.tid, group:ctx.runKey, signal,
+          title:`${old==null ? 'Create' : 'Change'} ${repoById[id].name}/${path}`,
+          detail:(inp.summary ? String(inp.summary).slice(0,200)+'\n\n' : '') + preview(content)});
+        if (!ok) throw new Error(DENIED);
+        files(id)[path] = content;
+        if (!saveFS()){ if (old==null) delete files(id)[path]; else files(id)[path] = old; throw new Error('Browser storage is full.'); }
+        ctx.log({k:'tool', tool:'Edit', text:`${label(id,path)}   ${old==null ? 'new file' : 'updated'} · ${content.split('\n').length} lines`});
+        renderSidebar(); if (FV.repo===id && FV.path===path) openFile(id, path);
+        return 'Saved '+path;
+      }},
+    {name:'delete_file', description:'Delete a file. Asks the user first.',
+      inputSchema:{type:'object', properties:{project:proj, path:{type:'string'}}, required: ctx.scope ? ['path'] : ['project','path']},
+      async execute(inp, {signal}){
+        const id = changeTarget(inp); const path = normPath(inp.path);
+        if (files(id)[path]==null) throw new Error('No file at '+path);
+        const ok = await askUser({who:ctx.who, color:ctx.color, tid:ctx.tid, group:ctx.runKey, signal, title:`Delete ${repoById[id].name}/${path}`, detail:preview(files(id)[path], 6)});
+        if (!ok) throw new Error(DENIED);
+        delete files(id)[path]; saveFS(); ctx.log({k:'tool', tool:'Delete', text:label(id,path)}); renderSidebar();
+        if (FV.repo===id && FV.path===path) closeFile();
+        return 'Deleted '+path;
+      }},
+    {name:'run_file', description:'Run a .py, .js or .html file from a project in the Code Lab and get back what it printed. Asks the user first.',
+      inputSchema:{type:'object', properties:{project:proj, path:{type:'string'}}, required: ctx.scope ? ['path'] : ['project','path']},
+      async execute(inp, {signal}){
+        const id = pick(inp); const path = normPath(inp.path); const c = files(id)[path];
+        if (c==null) throw new Error('No file at '+path);
+        if (!extMode(path)) throw new Error('Only .py, .js and .html files can run.');
+        const ok = await askUser({who:ctx.who, color:ctx.color, tid:ctx.tid, group:ctx.runKey, signal, title:`Run ${repoById[id].name}/${path} in the Code Lab`});
+        if (!ok) throw new Error(DENIED);
+        loadIntoLab(path.split('.').pop(), c); LAB.name = path.split('/').pop(); openLab(); showFile();
+        ctx.log({k:'tool', tool:'Run', text:label(id,path)});
+        const out = await runLab();
+        return (out || '(no output)').slice(-4000) + (LAB.lastError ? '\nThere was an error.' : '');
+      }},
+  ];
+}
+function askProjectTool(ctx, t){
+  return {name:'ask_project', description:'Hand part of the job to another project’s agent (it works in its own project and its result is sent back to you later). Asks the user first.',
+    inputSchema:{type:'object', properties:{project:{type:'string', enum:REPOS.map(r=>r.id).filter(id=>id!==ctx.scope)}, task:{type:'string', description:'clear instructions for the other agent'}}, required:['project','task']},
+    async execute(inp, {signal}){
+      if ((t.depth||0) >= 2) throw new Error('Too many hand-offs already. Do it yourself or tell the user.');
+      const id = String(inp.project); if (!repoById[id] || id===ctx.scope) throw new Error('Pick another project.');
+      const task = String(inp.task||'').trim(); if (!task) throw new Error('Give the task.');
+      const ok = await askUser({who:ctx.who, color:ctx.color, tid:ctx.tid, group:ctx.runKey, signal, title:`Ask the ${repoById[id].name} agent for help`, detail:task.slice(0,600)});
+      if (!ok) throw new Error(DENIED);
+      const child = startTask(id, task, false, {parent:t.id, depth:(t.depth||0)+1});
+      if (!child) throw new Error('That project has no room for a new task.');
+      ctx.log({k:'tool', tool:'Team', text:`Asked ${repoById[id].name}: ${task.slice(0,80)}`});
+      return `Started the ${repoById[id].name} agent. Its result will be sent to you as a new message when it finishes. Finish your own part now and say you are waiting on it.`;
+    }};
+}
+function notifyParent(t){
+  const p = threads.find(x=>x.id===t.parent); if (!p) return;
+  const last = [...t.msgs].reverse().find(m=>m.k==='agent');
+  p.msgs.push({k:'user', sys:true, text:`Update from the ${repoById[t.repo]?.name || t.repo} agent (task: ${t.title}):\n\n${(last?.text || 'It finished without a summary.').slice(0,4000)}`});
+  p.updated = Date.now(); p.real = true;
+  if (p.status!=='working'){
+    p.status = 'working'; p.progress = 0; p.dur = 40;
+    const st = stations.get(p.id); if (st) assignWorkers(st);
+    runAgentAI(p);
+  }
+  renderSidebar(); saveThreads();
+}
+
+/* ================= file viewer ================= */
+const FV = {repo:null, path:null, isNew:false, armDel:false};
+function openFile(repo, path, isNew=false){
+  closeDrawer(); FV.repo = repo; FV.path = path; FV.isNew = isNew; FV.armDel = false;
+  const fv = $('#fileView'); fv.hidden = false;
+  $('#fvPathIn').hidden = !isNew; $('#fvPath').hidden = isNew;
+  $('#fvPath').textContent = path || ''; $('#fvPathIn').value = isNew ? (path||'') : '';
+  $('#fvMeta').innerHTML = `<i class="cdot" style="background:${repoById[repo].color}"></i>${esc(repoById[repo].name)}`;
+  $('#fvText').value = isNew ? '' : (files(repo)[path] ?? '');
+  $('#fvLab').hidden = isNew || !extMode(path||''); $('#fvDelete').hidden = isNew; $('#fvDelete').textContent = 'Delete';
+  if (isNew) setTimeout(()=>$('#fvPathIn').focus(), 30);
+}
+function closeFile(){ FV.repo = null; FV.path = null; $('#fileView').hidden = true; }
+$('#fvClose').onclick = closeFile;
+$('#fvSave').onclick = ()=>{
+  let path = FV.path;
+  if (FV.isNew){ try{ path = normPath($('#fvPathIn').value); }catch(e){ toast(e.message); return; } if (files(FV.repo)[path]!=null){ toast('A file with that name already exists.'); return; } }
+  files(FV.repo)[path] = $('#fvText').value;
+  if (saveFS()){ toast('Saved '+path); openFile(FV.repo, path); renderSidebar(); }
+};
+$('#fvDelete').onclick = e=>{
+  if (!FV.armDel){ FV.armDel = true; e.currentTarget.textContent = 'Click again to delete'; return; }
+  delete files(FV.repo)[FV.path]; saveFS(); toast('Deleted '+FV.path); closeFile(); renderSidebar();
+};
+$('#fvLab').onclick = ()=>{ const c = $('#fvText').value; loadIntoLab(FV.path.split('.').pop(), c); LAB.name = FV.path.split('/').pop(); openLab(); showFile(); runLab(); };
+sbBody.addEventListener('click', e=>{
+  const f = e.target.closest('[data-file]'); if (f){ if (innerWidth<760) setSidebar(false); openFile(S.repo, f.dataset.file); return; }
+  if (e.target.closest('#newFile')) openFile(S.repo, '', true);
+});
+
+/* ================= add / remove projects ================= */
+const PCOLORS = ['#3d7bff','#38c96b','#f2c230','#b16cff','#ff7a3d','#ff4f8b','#2ec4d6','#e8e8f0'];
+function saveCustom(){ try{ localStorage.setItem('bo.repos', JSON.stringify(REPOS.filter(p=>p.custom).map(({id,name,color,q,r})=>({id,name,color,q,r})))); }catch{} }
+function freeAxial(){
+  const used = new Set(REPOS.map(p=>p.q+','+p.r)); const cand = [];
+  for (let q=-4;q<=4;q++) for (let r=-4;r<=4;r++){ const d = (Math.abs(q)+Math.abs(r)+Math.abs(q+r))/2; if (d>=1 && d<=4 && !used.has(q+','+r)){ const x = SQ3*(q+r/2), z = 1.5*r; cand.push({q, r, d, a: Math.atan2(z, x)}); } }
+  cand.sort((a,b)=>a.d-b.d || a.a-b.a); return cand[0] || null;
+}
+function addProject(name, color){
+  name = name.trim().toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
+  if (!name){ toast('Give the project a name.'); return null; }
+  if (REPOS.some(p=>p.name===name)){ toast(`There's already a project called ${name}.`); return null; }
+  const spot = freeAxial(); if (!spot){ toast('The desert is full. Remove a project to make room.'); return null; }
+  const p = {id:'c'+Date.now().toString(36), name, color, q:spot.q, r:spot.r, cmd:'npm test', files:GENERIC_FILES, custom:true};
+  prepRepo(p); REPOS.push(p); repoById[p.id] = p; FS.data[p.id] = {'README.md': `# ${name}\n`}; saveFS();
+  buildPlatform(p); decorate(p); addLamp(p); clearLanders();
+  for (let i=0;i<6;i++) spawnBot(p);
+  saveCustom(); selectRepo(p.id, true); setSidebar(true); setTab('threads');
+  toast(`Built ${name}. Start a conversation to give its robots work.`);
+  return p;
+}
+function removeProject(id){
+  const p = repoById[id]; if (!p || !p.custom) return;
+  for (const t of threads.filter(t=>t.repo===id)){ const st = stations.get(t.id); if (st){ releaseWorkers(st); removeStation(st); } threads.splice(threads.indexOf(t),1); }
+  for (const b of bots.filter(b=>b.repo===p)){ scene.remove(b.g); bots.splice(bots.indexOf(b),1); }
+  scene.remove(p.group); scene.remove(p.lamp); lamps.splice(lamps.indexOf(p.lamp),1);
+  decks.splice(decks.indexOf(p.deck),1); repoLabels[id]?.remove(); delete repoLabels[id];
+  REPOS.splice(REPOS.indexOf(p),1); delete repoById[id]; delete FS.data[id]; saveFS(); saveThreads(); if (FV.repo===id) closeFile();
+  if (S.drawer && !threads.find(t=>t.id===S.drawer)) closeDrawer();
+  if (S.sel && !threads.find(t=>t.id===S.sel)) closePopup();
+  clearLanders(); saveCustom(); selectRepo(null, true); toast(`Removed ${p.name}`);
+}
+const projModal = $('#projModal');
+function openAddProject(){
+  $('#pmName').value = ''; const taken = new Set(REPOS.map(p=>p.color));
+  const pick = PCOLORS.find(c=>!taken.has(c)) || PCOLORS[0];
+  $('#pmColors').innerHTML = PCOLORS.map((c,i)=>`<label class="swatch" style="--c:${c}"><input type="radio" name="pmColor" value="${c}" ${c===pick?'checked':''} aria-label="Color ${i+1}"><span></span></label>`).join('');
+  projModal.hidden = false; setTimeout(()=>$('#pmName').focus(), 30);
+}
+$('#pmCancel').onclick = ()=> projModal.hidden = true;
+projModal.addEventListener('click', e=>{ if (e.target===projModal) projModal.hidden = true; });
+$('#pmForm').addEventListener('submit', e=>{ e.preventDefault(); const c = projModal.querySelector('input[name=pmColor]:checked')?.value || PCOLORS[0]; if (addProject($('#pmName').value, c)) projModal.hidden = true; });
+let removeArm = null;
+sbBody.addEventListener('click', e=>{
+  if (e.target.closest('#addProj')){ openAddProject(); return; }
+  const rm = e.target.closest('#rmProj'); if (!rm) return;
+  if (removeArm===S.repo){ removeArm = null; removeProject(S.repo); }
+  else { removeArm = S.repo; rm.textContent = 'Click again to remove it and its threads'; rm.classList.add('danger'); setTimeout(()=>{ if (removeArm){ removeArm = null; renderSidebar(); } }, 4000); }
+});
+
+/* boot */
+selectRepo('bot-oasis');
+syncTimebar();
+selectThread(threads[0].id);
+setTab('threads');
+loop();
+</script>
+
+</body>
+</html>
