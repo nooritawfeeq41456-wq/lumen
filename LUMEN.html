@@ -188,8 +188,8 @@ table.tt th,table.tt td{padding:5px 6px;text-align:left;border-bottom:1px solid 
 table.tt th{color:var(--muted);font-weight:500;position:sticky;top:0;background:#06131f}
 .filebtn{position:relative;overflow:hidden}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
-#trade,#study{width:min(520px, calc(100% - 32px))}
-#codeWin{width:min(900px, calc(100% - 32px));height:min(680px, calc(100% - 40px));display:flex;flex-direction:column}
+#study{width:min(520px, calc(100% - 32px))}
+#codeWin{width:min(760px, calc(100% - 32px));height:min(620px, calc(100% - 40px));display:flex;flex-direction:column}
 #codeWin > div{flex:1;min-height:0;display:flex;flex-direction:column}
 #appFrame{flex:1;min-height:260px;width:100%;border:1px solid var(--line);border-radius:10px;background:#fff}
 #codeSrc,#explainIn{flex:1;min-height:200px}
@@ -308,6 +308,31 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
 .air-hot{outline:2px solid var(--holo)!important;outline-offset:2px;box-shadow:0 0 18px color-mix(in srgb, var(--holo) 50%, transparent)!important}
 #smart,#fixGuide{width:min(560px, calc(100% - 32px))}
 @media (max-width: 760px){ #carTrack{height:200px} .car-card{width:140px;height:180px;margin-left:-70px} .car-card svg{width:40px;height:40px} .car-card b{font-size:15px} .car-arrow{display:none} #fileBar{top:auto;bottom:calc(120px + env(safe-area-inset-bottom,0px))} }
+
+/* ===== v8: speed + shape mode + chat ===== */
+*{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root{--glass:rgba(5,14,24,.9)}
+.scan{animation:none!important}
+#home{background:radial-gradient(ellipse at 50% 35%, rgba(6,26,42,.93), rgba(1,5,11,.98) 75%)!important;animation:none!important}
+#shapeBar{left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:18px;background:rgba(3,10,18,.88);border:1px solid var(--holo);box-shadow:0 0 30px color-mix(in srgb, var(--holo) 30%, transparent);z-index:9;max-width:calc(100% - 24px)}
+.sb-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:var(--holo);text-align:center;margin-bottom:7px}
+#shapeList{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#shapeList button{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(4,16,28,.8);font-size:13px;font-weight:600;color:var(--muted)}
+#shapeList button.on{color:#fff;border-color:var(--holo);background:color-mix(in srgb, var(--holo) 22%, transparent);box-shadow:0 0 14px color-mix(in srgb, var(--holo) 45%, transparent)}
+.sb-arrow{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:rgba(4,16,28,.85);font-size:26px;color:var(--holo);flex:none}
+body.shape #readout{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+body.shape #holoStrip{display:none!important}
+#home:not([hidden]) ~ #fileBar,#carousel:not([hidden]) ~ #fileBar{display:none!important}
+.airRipple{position:fixed;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--holo);pointer-events:none;z-index:60;animation:airR .55s ease-out forwards;box-shadow:0 0 14px var(--holo)}
+@keyframes airR{to{transform:scale(4.5);opacity:0}}
+#chat{width:min(620px, calc(100% - 32px));height:min(640px, calc(100% - 40px));display:flex;flex-direction:column}
+#chatLog{flex:1;min-height:160px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;margin-top:6px}
+.msg{max-width:85%;padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:#071827}
+.msg p{margin:3px 0 0;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.msg small{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted)}
+.msg.you{align-self:flex-end;border-color:color-mix(in srgb, var(--node) 50%, transparent);background:color-mix(in srgb, var(--node) 12%, #071827)}
+.msg.ai{align-self:flex-start}
+@media (max-width: 760px){ #shapeBar{bottom:calc(120px + env(safe-area-inset-bottom,0px))} .sb-arrow{display:none} }
 @media (max-width: 760px){
   #sign{width:min(230px, 60vw);top:calc(56px + env(safe-area-inset-top,0px))}
   #stats{font-size:10px}
@@ -408,19 +433,17 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
     <h2>HOW TO CONTROL</h2>
     <h3>HAND SIGNS</h3>
     <dl class="keys">
-      <dt>✋ Open hand</dt><dd>Move it slowly to spin the hologram</dd>
-      <dt>👋 Swipe</dt><dd>Sweep an open hand quickly left or right: next or previous hologram (or browse the swipe menu)</dd>
-      <dt>🫸 Push</dt><dd>Push your open palm toward the camera: back / close what is open</dd>
-      <dt>🤏 Pinch</dt><dd>Grab and turn it precisely</dd>
-      <dt>🙌 Two hands</dt><dd>Apart to zoom in, together to zoom out</dd>
-      <dt>☝ Point</dt><dd>Aim the beam; hold on a region or menu option to pick it</dd>
-      <dt>👍 Thumbs up</dt><dd>Open the swipe menu, choose in it, or answer “yes”</dd>
+      <dt>✋ Open hand</dt><dd>Move it to spin the hologram</dd>
+      <dt>✌ Peace (hold)</dt><dd><b>Shape mode</b> on / off. In shape mode, sweep your hand left or right and the shapes slide in one after another: brain → globe → solar system → heart → chart</dd>
+      <dt>👆 Air click</dt><dd>Point at anything (a button, a planet, a brain part), then quickly pinch: it clicks. Or keep pointing for a second</dd>
+      <dt>🤏 Pinch (hold)</dt><dd>Grab and turn the hologram precisely</dd>
+      <dt>🙌 Two hands</dt><dd>Apart to zoom in, together to zoom out · pinch with both and pull apart to explode the brain</dd>
+      <dt>👍 Thumbs up</dt><dd>Open the swipe menu (swipe to browse, pinch to choose) · answers “yes”</dd>
       <dt>👎 Thumbs down</dt><dd>No / cancel / back</dd>
+      <dt>🫸 Push</dt><dd>Push your open palm toward the camera: back / close</dd>
       <dt>🤘 Rock sign</dt><dd>Turn listening on or off (then just say “Lumen …”)</dd>
-      <dt>✌ Peace, moving</dt><dd>Move it up or down to scroll a panel or the Home screen</dd>
-      <dt>☝ Point + hold</dt><dd>Presses any button you aim at, so you never need the mouse</dd>
-      <dt>✊ Fist</dt><dd>Freeze or unfreeze</dd>
-      <dt>✌ Peace</dt><dd>Neural storm</dd>
+      <dt>✊ Fist</dt><dd>Freeze · leaves shape mode · goes back in the swipe menu</dd>
+      <dt>✌ moving</dt><dd>With a panel open, move a peace sign up or down to scroll it</dd>
     </dl>
     <p class="note">Signs not working well? Open Menu → Train signs and teach LUMEN your own hand. Good light and an arm’s length from the camera help a lot.</p>
     <h3>VOICE</h3>
@@ -443,11 +466,10 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
       <dt>Holograms</dt><dd>“Show the globe / solar system / heart / stock chart”, “back to the brain”, “pyramid mode”</dd>
       <dt>Sculpt</dt><dd>“Explode”, “put it back”, “x-ray”, “slice”, “deeper”. Or pinch with both hands and pull apart.</dd>
       <dt>Hands</dt><dd>“Draw mode” (pinch to draw, fist clears), “air keyboard”. Make your own signs in Train signs.</dd>
-      <dt>Build</dt><dd>“Build me a tip calculator app”, “explain code”, “text my brother that I’ll be late”, “open Jarvis”</dd>
-      <dt>Trading</dt><dd>“Trading desk”, “position size”, “show the stock chart”. For learning only, not financial advice.</dd>
+      <dt>More</dt><dd>“Explain code”, “text my brother that I’ll be late”, “open Jarvis”, “show the conversation”</dd>
       <dt>Personality</dt><dd>“Teacher mode”, “funny mode”, “Jarvis mode”, “normal mode”</dd>
     </dl>
-    <p class="note">Reading text, making flashcards and building apps need an AI (Menu → Settings → AI settings). A free Google Gemini key gives LUMEN eyes. LUMEN can’t send texts or make calls by itself; it drafts the message for you to send.</p>
+    <p class="note">Reading text and making flashcards need an AI (Menu → Settings → AI settings). A free Google Gemini key gives LUMEN eyes. LUMEN can’t send texts or make calls by itself; it drafts the message for you to send.</p>
     <p class="note">The camera and microphone work best in the downloaded file opened in Chrome or Edge. Camera video stays on this computer and is never recorded.</p>
   </section>
 
@@ -548,44 +570,6 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
     </div>
   </section>
 
-  <section id="trade" class="hud glass panel-card" hidden aria-label="Trading desk">
-    <button class="x" data-close="trade" aria-label="Close">×</button>
-    <h2>TRADING DESK</h2>
-    <p class="note" style="margin:0 0 10px">For learning and practice only. This is not financial advice, and LUMEN can’t see live prices.</p>
-    <div class="tabs"><button class="btn" data-ttab="risk" type="button">Risk calculator</button><button class="btn" data-ttab="journal" type="button">Journal</button><button class="btn" data-ttab="chart" type="button">Chart</button></div>
-    <div class="tpane" id="tp-risk">
-      <div class="grid2">
-        <div><label for="rkAcct">Account size ($)</label><input type="number" id="rkAcct" value="1000" min="0" step="any"></div>
-        <div><label for="rkPct">Risk per trade (%)</label><input type="number" id="rkPct" value="1" min="0" step="0.1"></div>
-        <div><label for="rkEntry">Entry price</label><input type="number" id="rkEntry" min="0" step="any" placeholder="e.g. 50"></div>
-        <div><label for="rkStop">Stop-loss price</label><input type="number" id="rkStop" min="0" step="any" placeholder="e.g. 48"></div>
-        <div><label for="rkTarget">Target price (optional)</label><input type="number" id="rkTarget" min="0" step="any" placeholder="e.g. 56"></div>
-      </div>
-      <div class="out" id="rkOut"></div>
-      <p class="note">Many traders risk only 1 to 2 percent of their account on one trade, so a few losses in a row don’t wipe them out.</p>
-    </div>
-    <div class="tpane" id="tp-journal" hidden>
-      <form id="tAdd" autocomplete="off">
-        <div class="grid2">
-          <div><label for="tDate">Date</label><input type="date" id="tDate"></div>
-          <div><label for="tTicker">Ticker</label><input id="tTicker" maxlength="8" placeholder="e.g. AAPL"></div>
-          <div><label for="tSide">Side</label><select id="tSide"><option value="long">Long (buy)</option><option value="short">Short (sell)</option></select></div>
-          <div><label for="tShares">Shares</label><input type="number" id="tShares" min="0" step="any"></div>
-          <div><label for="tEntry">Entry price</label><input type="number" id="tEntry" min="0" step="any"></div>
-          <div><label for="tExit">Exit price</label><input type="number" id="tExit" min="0" step="any"></div>
-        </div>
-        <div class="actions"><button class="btn" id="tExport" type="button">Export CSV</button><button class="btn primary" type="submit">Add trade</button></div>
-      </form>
-      <div class="stats" id="tStats"></div>
-      <div class="tscroll"><table class="tt"><thead><tr><th>Date</th><th>Ticker</th><th>Side</th><th>In</th><th>Out</th><th>Qty</th><th>P/L</th><th></th></tr></thead><tbody id="tRows"></tbody></table></div>
-    </div>
-    <div class="tpane" id="tp-chart" hidden>
-      <p class="note">Show price history as a 3D candle hologram. Use the made-up example, or load a CSV with date, open, high, low and close columns (most finance sites can export one).</p>
-      <div class="row" style="flex-wrap:wrap;margin-top:10px"><button class="btn" id="cExample" type="button">Example chart</button><span class="btn filebtn">Load CSV…<input type="file" id="cFile" accept=".csv,text/csv"></span><button class="btn primary" id="cExplain" type="button">Explain this chart</button></div>
-      <p class="note" id="chartInfo"></p>
-    </div>
-  </section>
-
   <section id="msg" class="hud glass panel-card" hidden aria-label="Message draft">
     <button class="x" data-close="msg" aria-label="Close">×</button>
     <h2>MESSAGE DRAFT</h2>
@@ -595,24 +579,11 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
     <div class="actions"><button class="btn" data-close="msg" type="button">Close</button><button class="btn primary" id="msgCopy" type="button">Copy</button></div>
   </section>
 
-  <section id="codeWin" class="hud glass panel-card" hidden aria-label="Build apps">
+  <section id="codeWin" class="hud glass panel-card" hidden aria-label="Explain code">
     <button class="x" data-close="codeWin" aria-label="Close">×</button>
-    <h2 id="codeTitle">BUILD</h2>
-    <p class="note" id="codeStatus"></p>
-    <div id="cv-make">
-      <p class="note">Describe a small app or game and LUMEN writes it. It runs here in a safe box, and you can download it as its own file.</p>
-      <form id="codeMake" autocomplete="off" style="margin-top:10px"><textarea id="codeDesc" rows="4" placeholder="e.g. a study timer with a progress ring, or a snake game"></textarea><div class="actions"><button class="btn" type="button" data-cv="explain">Explain code instead</button><button class="btn primary" type="submit">Build it</button></div></form>
-    </div>
-    <div id="cv-app" hidden>
-      <iframe id="appFrame" sandbox="allow-scripts allow-modals allow-forms" title="Your app"></iframe>
-      <div class="actions"><button class="btn" type="button" data-cv="make">Build another</button><button class="btn" id="codeExplainBtn" type="button" hidden>Explain</button><button class="btn" id="codeSrcBtn" type="button">View code</button><button class="btn" id="codeCopy" type="button">Copy code</button><button class="btn primary" id="codeSave" type="button">Download</button></div>
-    </div>
-    <div id="cv-src" hidden>
-      <textarea id="codeSrc" spellcheck="false"></textarea>
-      <div class="actions"><button class="btn" id="codeBack" type="button">Back to app</button><button class="btn primary" id="codeRun" type="button">Run my changes</button></div>
-    </div>
-    <div id="cv-explain" hidden>
-      <form id="explainForm" style="display:flex;flex-direction:column;flex:1;min-height:0"><label for="explainIn">Paste code</label><textarea id="explainIn" spellcheck="false" placeholder="Paste any code here"></textarea><div class="actions"><button class="btn" type="button" data-cv="make">Build an app instead</button><button class="btn primary" type="submit">Explain it</button></div></form>
+    <h2>EXPLAIN CODE</h2>
+    <div id="cv-explain">
+      <form id="explainForm" style="display:flex;flex-direction:column;flex:1;min-height:0"><label for="explainIn">Paste code</label><textarea id="explainIn" spellcheck="false" placeholder="Paste any code here"></textarea><div class="actions"><button class="btn primary" type="submit">Explain it</button></div></form>
       <div id="explainOut" class="note"></div>
     </div>
   </section>
@@ -639,6 +610,7 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
     </ol>
     <form id="smartForm" class="row" autocomplete="off" style="margin-top:12px"><input id="smartKey" type="password" spellcheck="false" placeholder="Paste your Gemini key" style="flex:1"><button class="btn primary" id="smartGo" type="submit">Connect</button></form>
     <p class="note" id="smartOut" aria-live="polite"></p>
+    <div class="actions" style="justify-content:flex-start"><button class="btn" id="smartLocal" type="button">Use the offline brain instead (0.9 GB download, weaker)</button></div>
     <p class="note">Your key stays only in this browser. The free tier has daily limits, and Google may use free-tier chats to improve its products, so don’t share private things. If you are offline, LUMEN switches back to the built-in brain by itself.</p>
   </section>
 
@@ -658,6 +630,22 @@ body.pyr #app > :not(#stage):not(#pyrBar):not(#toast){display:none!important}
     <p class="note">Anyone who knows the link could open the page, but your memory, keys and data stay only in your own browser. To update LUMEN later, upload the new files the same way.</p>
     <h3>OR: ON THIS LAPTOP ONLY</h3>
     <p class="note">In the extracted folder, double-click <b>Start LUMEN.bat</b> (if Windows warns you: <b>More info → Run anyway</b>). Keep its black window open while you use LUMEN.</p>
+  </section>
+
+  <div id="shapeBar" class="hud" hidden>
+    <button class="sb-arrow" id="shapePrev" data-air type="button" aria-label="Previous shape">‹</button>
+    <div><div class="sb-title">SHAPE MODE · SWIPE ✋ LEFT OR RIGHT</div><div id="shapeList"></div></div>
+    <button class="sb-arrow" id="shapeNext" data-air type="button" aria-label="Next shape">›</button>
+    <button class="btn" id="shapeExit" data-air type="button">Exit ✌</button>
+  </div>
+
+  <section id="chat" class="hud glass panel-card" hidden aria-label="Conversation">
+    <button class="x" data-close="chat" aria-label="Close">×</button>
+    <h2>CONVERSATION</h2>
+    <p class="note" id="chatBrain"></p>
+    <div id="chatLog"></div>
+    <form id="chatForm" class="row" autocomplete="off" style="margin-top:10px"><input id="chatIn" placeholder="Type, or just say “Lumen …”" style="flex:1"><button class="btn primary" type="submit">Send</button></form>
+    <div class="actions"><button class="btn" id="chatClear" type="button">Clear</button><button class="btn" id="chatKb" type="button">⌨ Air keyboard</button><button class="btn primary" id="chatMic" type="button">🎙 Listen</button></div>
   </section>
 
   <div id="cursor" hidden></div><div id="cursorDot" hidden></div>
@@ -712,7 +700,7 @@ function noise3(xin,yin,zin){
 /* ---------- renderer ---------- */
 const stage = $('#stage');
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
 renderer.setSize(stage.clientWidth, stage.clientHeight);
 renderer.setClearColor(0x02070f, 1);
 stage.appendChild(renderer.domElement);
@@ -1169,7 +1157,7 @@ async function startCamera(){
   }catch(e){ console.error(e); stopCamera(); starting = false; toast('Couldn’t load hand tracking. Check your internet connection and try again.', 6000); return false; }
   camOn = true; starting = false; LS.set('neon.autoCam', true); if (PRESENCE.on) ensureFace(); btn.classList.add('on'); btn.lastChild.textContent = 'Hand control';
   $('#camState').textContent = 'TRACKING'; renderMenu();
-  readout('✋', 'Show your hand to the camera', 'thumbs-up opens the swipe menu');
+  readout('✋', 'Show your hand to the camera', '✌ hold = shape mode · 👍 = swipe menu');
   return true;
 }
 function stopCamera(){
@@ -1245,7 +1233,10 @@ function processHands(res, now){
   const qx = F.qx.f(h.pinchPt.x, now), qy = F.qy.f(h.pinchPt.y, now);
   $('#camG').textContent = (NAMES[g]||labelOf(g)).toUpperCase() + (h.src==='yours' ? ' · YOURS' : h.src==='model' ? ' · AI' : '');
 
-  if (handsFree(found, h, g, now, {px, py, tx, ty, qx, qy})) return;
+  const P5 = {px, py, tx, ty, qx, qy};
+  if (shapeGestures(h, g, now, P5)) return;
+  if (handsFree(found, h, g, now, P5)){ AC.prevG = g; return; }
+  if (airPointer(g, h, P5, now)) return;
   if (handPowers(g, h, {px, py, tx, ty, qx, qy}, now)) return;
   // menu navigation by hand: point (or pinch) to aim, hold to choose
   if (menuOpen() || airOpen() || homeOpen()){
@@ -1275,7 +1266,7 @@ function processHands(res, now){
     }
     st.prevPalm = {x:px, y:py};
     waveHist.push({t:now, x:h.palm.x}); waveHist = waveHist.filter(p=> now - p.t < 1300);
-    if (now > readoutLock) readout('✋', 'Open hand', V.frozen ? 'frozen, make a fist to unfreeze' : 'move slowly to spin · sweep fast to swipe', conf);
+    if (now > readoutLock) readout('✋', 'Open hand', V.frozen ? 'frozen, make a fist to unfreeze' : 'move it to spin · hold ✌ for shape mode', conf);
   } else if (g === 'pinch'){
     if (!st.grab) st.grab = {x:qx, y:qy, yaw:V.yawT, pitch:V.pitchT};
     if (!V.frozen){ V.yawT = st.grab.yaw + (qx - st.grab.x)*8*k; V.pitchT = clamp(st.grab.pitch + (qy - st.grab.y)*5*k, -1.2, 1.2); V.yawVel = 0; }
@@ -1297,7 +1288,7 @@ function processHands(res, now){
   } else if (g === 'thumbs'){
     if (!st.held && now - st.since > 550){ st.held = true; openMenu(); }
     if (now > readoutLock) readout('👍', 'Thumbs up', 'hold to open the menu', conf);
-  } else if (now > readoutLock) readout('🖐', 'Hand seen', 'try open hand, pinch, point, fist or thumbs up', conf);
+  } else if (now > readoutLock) readout('🖐', 'Hand seen', 'try ✋ ✌ ☝ 🤏 👍 👎 ✊ 🤘', conf);
   if (g !== 'point') hoverRegion = -1;
 }
 function detectWave(hist){
@@ -1863,7 +1854,7 @@ aiModal.addEventListener('submit', async e=>{
   aiTesting = new AbortController();
   try{
     const r = await makeOwnSample(c)('Reply with just the word OK.', {signal:aiTesting.signal});
-    saveAiCfg(c);
+    saveAiCfg(c); if (c.provider==='local') LS.set('neon.localChosen', true);
     if (AI_SOURCE!=='claude'){ useOwnAI(); }
     aiModal.hidden = true; aiReady();
     toast(AI_SOURCE==='claude' ? 'Saved. It will be used when LUMEN is opened outside claude.ai.' : c.provider==='local' ? 'The built-in AI is on. Ask LUMEN anything!' : `Connected (${r.text.trim().slice(0,20)}). LUMEN now uses ${aiLabel()}.`);
@@ -1928,8 +1919,8 @@ async function askAI(text, extra={}){
   const B = extra.brain || pickBrain(text, !!extra.images);
   if (!B){
     if (!aiChecked){ speak('Give me a second, I am still waking up.'); return; }
-    if (navigator.gpu){ autoAI(); speak('My built-in AI brain is starting up. The very first time it downloads once, which takes a few minutes. Ask me again in a moment.'); return; }
-    speak('This browser can’t run my built-in AI brain. Open me in Chrome or Edge, or add a free Google Gemini key in AI settings.'); setTimeout(openAISettings, 600);
+    autoAI(); if (sample){ return askAI(text, extra); }
+    openSmart(); speak('I need my AI brain first. Paste your free Google Gemini key here, it takes two minutes. Or choose the offline brain.');
     return;
   }
   aiCtl?.abort(); const ctl = aiCtl = new AbortController();
@@ -2048,7 +2039,7 @@ Object.assign(IC, {
   face:'<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>', read:'<path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/>',
   jarvis:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/>', chart:'<path d="M7 4v16M17 4v16"/><rect x="5" y="8" width="4" height="7"/><rect x="15" y="6" width="4" height="9"/>',
 });
-const SUBN = {holo:'HOLOGRAMS', tools:'TOOLS', vision:'VISION', views:'BRAIN', build:'BUILD'};
+const SUBN = {holo:'HOLOGRAMS', tools:'TOOLS', vision:'VISION', views:'BRAIN', build:'SYSTEM'};
 let menuPath = 'root';
 const goSub = id => ()=>{ menuPath = id; renderMenu(); };
 const thenClose = fn => ()=>{ closeMenu(); setTimeout(fn, 120); };
@@ -2059,13 +2050,13 @@ const MENUS = {
     {id:'tour', label:'Guided tour', sub:()=> tour ? 'running' : 'LUMEN explains', icon:'tour', on:()=>!!tour, run(){ if (HOLO.mode!=='brain') setHolo('brain'); tour ? stopTour() : startTour(); }},
     {id:'quiz', label:'Brain quiz', sub:()=> quiz.on ? 'running' : '5 questions', icon:'quiz', on:()=>quiz.on, run(){ if (HOLO.mode!=='brain') setHolo('brain'); quiz.on ? endQuiz() : startQuiz(); }},
     {id:'study', label:'Study', sub:()=> totalDue() + ' cards due', icon:'study', on:()=>!!STUDY.deck, run:thenClose(()=>openStudy())},
-    {id:'trade', label:'Trading', sub:()=>'risk · journal', icon:'trade', run:thenClose(()=>openTrade())},
+    {id:'ai', label:'Conversation', sub:()=>'what we said', icon:'msg', run:thenClose(()=>openChat())},
     {id:'holo', label:'Holograms', sub:()=> HOLO_NAMES[HOLO.mode], icon:'cube', on:()=>HOLO.mode!=='brain', run:goSub('holo')},
     {id:'tools', label:'Tools', sub:()=> TIMERS.length ? TIMERS.length + ' running' : 'timers, focus…', icon:'tools', on:()=>TIMERS.length>0 || DRAW.on, run:goSub('tools')},
     {id:'vision', label:'Vision', sub:()=> camOn ? 'camera on' : 'eyes & face', icon:'eye', on:()=>camOn, run:goSub('vision')},
     {id:'views', label:'Brain', sub:()=>'views, x-ray…', icon:'views', on:()=>EXP.on || XRAY.on || SLICE.on, run:goSub('views')},
     {id:'memory', label:'Memory', sub:()=> (MEM.name ? MEM.name + ' · ' : '') + MEM.facts.length + ' saved', icon:'chip', run:thenClose(openMemory)},
-    {id:'build', label:'Build', sub:()=>'apps & code', icon:'code', run:goSub('build')},
+    {id:'build', label:'System', sub:()=>'code, Jarvis', icon:'code', run:goSub('build')},
     {id:'settings', label:'Settings', sub:()=>'voice, AI, look', icon:'gear', run:thenClose(()=>openPanel('settings'))},
     {id:'help', label:'How to', sub:()=>'signs & voice', icon:'help', run:thenClose(()=>openPanel('help'))},
   ],
@@ -2100,8 +2091,7 @@ const MENUS = {
     {id:'slice', label:'Slice', sub:()=> SLICE.on ? 'on' : 'cut through', icon:'slice', on:()=>SLICE.on, run(){ if (HOLO.mode!=='brain') setHolo('brain'); setSlice(!SLICE.on); }},
     BACK],
   build:[
-    {id:'app', label:'Build an app', sub:()=>'describe it', icon:'code', run:thenClose(()=>openCode('make'))},
-    {id:'explain', label:'Explain code', sub:()=>'paste any code', icon:'read', run:thenClose(()=>openCode('explain'))},
+    {id:'explain', label:'Explain code', sub:()=>'paste any code', icon:'read', run:thenClose(()=>openCode())},
     {id:'jarvis', label:'Open Jarvis', sub:()=>'your 3D agents', icon:'jarvis', run:thenClose(openJarvis)},
     BACK],
 };
@@ -2263,12 +2253,12 @@ function pickBrain(text, needImages){
 }
 function powersPrompt(){
   return `${MEM.name ? `The user's name is ${MEM.name}. ` : ''}${MEM.facts.length ? 'Things the user asked you to remember: ' + MEM.facts.slice(-40).map(f=>f.t).join('; ') + '. ' : ''}Your personality: ${PERSONAS[persona]}. ${MOOD.label && Date.now() - MOOD.wall < 60000 ? `The user's face looks ${MOOD.label} right now; let that gently shape your tone. ` : ''}
-Besides the brain you can show other holograms (globe, solar system, heart, stock chart), run timers and reminders, start focus mode, study flashcards, help with a trading journal and risk math (education only, never personal financial advice), draft text messages, and build small web apps. When the user shares something about themselves worth keeping (their name, goals, likes, school, projects), save it with the remember action.`;
+Besides the brain you can show other holograms (globe, solar system, heart, stock chart), run timers and reminders, start focus mode, study flashcards and draft text messages. When the user shares something about themselves worth keeping (their name, goals, likes, school, projects), save it with the remember action.`;
 }
 function powerTool(){
-  return {name:'neon_power', description:'LUMEN powers: remember a fact about the user, set a timer or reminder, start focus mode, open flashcards or make a new deck, show a hologram, explode/x-ray/slice the brain, give the daily briefing, draft a text message, or build a small web app.',
+  return {name:'neon_power', description:'LUMEN powers: remember a fact about the user, set a timer or reminder, start focus mode, open flashcards or make a new deck, show a hologram, explode/x-ray/slice the brain, give the daily briefing, or draft a text message.',
     inputSchema:{type:'object', properties:{
-      action:{type:'string', enum:['remember','timer','reminder','focus','study','make_flashcards','hologram','explode','xray','slice','briefing','draft_message','build_app']},
+      action:{type:'string', enum:['remember','timer','reminder','focus','study','make_flashcards','hologram','explode','xray','slice','briefing','draft_message']},
       text:{type:'string', description:'the fact, reminder text, message purpose, app description or flashcard topic'},
       minutes:{type:'number'}, at_time:{type:'string', description:'clock time like 8:30 pm'},
       to:{type:'string', description:'who a message is for'}, hologram:{type:'string', enum:['brain','globe','solar','heart','chart']}, on:{type:'boolean'}}, required:['action']},
@@ -2287,7 +2277,6 @@ function powerTool(){
         case 'slice': setSlice(on); return 'Done.';
         case 'briefing': setTimeout(briefing, 2500); return 'The briefing will play right after you finish speaking.';
         case 'draft_message': setTimeout(()=>draftMessage(a.to || '', txt), 2500); return 'Drafting it right after you finish speaking.';
-        case 'build_app': setTimeout(()=>buildApp(txt), 2500); return 'Building it right after you finish speaking.';
       }
       throw new Error('Unknown action');
     }};
@@ -2401,7 +2390,7 @@ const SIGN_ACTIONS = {
   explode:['Explode view', ()=>setExplode(!EXP.on)], xray:['X-ray', ()=>setXray(!XRAY.on)], slice:['Slice', ()=>setSlice(!SLICE.on)], nextHolo:['Next hologram', ()=>nextHolo()],
   draw:['Draw mode', ()=>setDraw(!DRAW.on)], keyboard:['Air keyboard', ()=>openKeyboard()], reset:['Reset view', ()=>ACT.reset()],
   theme:['Next color', ()=>{ const ks = Object.keys(THEMES); ACT.theme(ks[(ks.indexOf(themeKey)+1) % ks.length]); }],
-  trading:['Trading desk', ()=>openTrade()], mood:['How do I look?', ()=>readMood()],
+  mood:['How do I look?', ()=>readMood()],
 };
 const labelOf = g => SIGN_LABEL[g] || ('✨ ' + (CUSTOM.find(c=>c.id===g)?.name || g));
 function saveCustom(){ LS.set('neon.customSigns', CUSTOM); }
@@ -2614,7 +2603,7 @@ $('#deckMake').addEventListener('submit', e=>{ e.preventDefault(); const t = $('
 async function makeDeck(topic){
   topic = String(topic||'').trim(); if (!topic){ speak('What topic should the flashcards be about?'); return; }
   const B = pickBrain('make flashcards ' + topic);
-  if (!B){ { autoAI(); speak('My AI brain is still starting up. Try again in a moment.'); }; return; }
+  if (!B){ { openSmart(); speak('I need my AI brain for that. Connect it here, it is free.'); }; return; }
   speak(`Making flashcards about ${topic}.`); setSign('thinking'); $('#deckMakeOut').textContent = 'Making cards…';
   try{
     const r = await B.S(`Make 8 accurate study flashcards about: ${topic}. The learner is a high school student. Keep questions short and answers very short (a few words). Reply with only a JSON array like [{"q":"question","a":"answer"}].`, {cache:false});
@@ -2635,65 +2624,10 @@ HOOKS.commands.push(t=>{
   return undefined;
 });
 
-/* ---------- trading desk (for learning, not financial advice) ---------- */
-const TRADES = LS.get('neon.trades', []);
-const money = n => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-const pl = t => (t.exit - t.entry) * t.shares * (t.side==='short' ? -1 : 1);
-function tradeStats(list=TRADES){
-  const n = list.length; const p = list.map(pl); const wins = p.filter(x=>x > 0), losses = p.filter(x=>x < 0);
-  return {n, total:p.reduce((a,b)=>a+b, 0), win:n ? wins.length/n : 0, avgWin:wins.length ? wins.reduce((a,b)=>a+b,0)/wins.length : 0, avgLoss:losses.length ? losses.reduce((a,b)=>a+b,0)/losses.length : 0, best:n ? Math.max(...p) : 0};
-}
-function renderTrades(){
-  const s = tradeStats();
-  $('#tStats').innerHTML = `<div><b>${s.n}</b><small>trades</small></div><div><b>${Math.round(s.win*100)}%</b><small>win rate</small></div><div><b class="${s.total>=0?'up':'down'}">${money(s.total)}</b><small>total P/L</small></div><div><b>${money(s.avgWin)}</b><small>avg win</small></div><div><b>${money(s.avgLoss)}</b><small>avg loss</small></div>`;
-  $('#tRows').innerHTML = TRADES.length ? TRADES.slice().reverse().map((t,i)=>{ const v = pl(t); return `<tr><td>${esc(t.date)}</td><td>${esc(t.ticker)}</td><td>${t.side}</td><td>${t.entry}</td><td>${t.exit}</td><td>${t.shares}</td><td class="${v>=0?'up':'down'}">${money(v)}</td><td><button class="x2" data-deltrade="${TRADES.length-1-i}" aria-label="Delete trade">×</button></td></tr>`; }).join('') : '<tr><td colspan="8" class="muted">No trades yet. Add your first one above.</td></tr>';
-}
-function calcRisk(){
-  const acct = +$('#rkAcct').value, pct = +$('#rkPct').value, entry = +$('#rkEntry').value, stop = +$('#rkStop').value, target = +$('#rkTarget').value;
-  const perShare = Math.abs(entry - stop), riskD = acct*pct/100;
-  if (!(acct > 0 && pct > 0 && entry > 0 && perShare > 0)){ $('#rkOut').innerHTML = '<span class="muted">Fill in account, risk %, entry and stop.</span>'; return; }
-  const shares = Math.floor(riskD/perShare), rr = target > 0 ? Math.abs(target - entry)/perShare : 0;
-  $('#rkOut').innerHTML = `Buy up to <b>${shares}</b> shares (about ${money(shares*entry)}). Max risk ${money(riskD)} · ${money(perShare)} per share${rr ? ` · reward-to-risk <b>${rr.toFixed(1)} : 1</b>` : ''}.`;
-}
-function openTrade(tab='risk'){ showPanel('trade'); setTradeTab(tab); renderTrades(); calcRisk(); }
-function setTradeTab(tab){ document.querySelectorAll('[data-ttab]').forEach(b=>b.classList.toggle('on', b.dataset.ttab===tab)); document.querySelectorAll('.tpane').forEach(p=>p.hidden = p.id !== 'tp-' + tab); }
-document.querySelectorAll('[data-ttab]').forEach(b=> b.onclick = ()=> setTradeTab(b.dataset.ttab));
-['rkAcct','rkPct','rkEntry','rkStop','rkTarget'].forEach(id=> $('#'+id).addEventListener('input', calcRisk));
-$('#tAdd').addEventListener('submit', e=>{
-  e.preventDefault();
-  const t = {date:$('#tDate').value || new Date().toISOString().slice(0,10), ticker:$('#tTicker').value.trim().toUpperCase().slice(0,8), side:$('#tSide').value, entry:+$('#tEntry').value, exit:+$('#tExit').value, shares:+$('#tShares').value};
-  if (!t.ticker || !(t.entry > 0) || !(t.exit > 0) || !(t.shares > 0)){ toast('Fill in ticker, entry, exit and shares.'); return; }
-  TRADES.push(t); LS.set('neon.trades', TRADES); renderTrades(); e.target.reset(); $('#tDate').value = new Date().toISOString().slice(0,10);
-});
-$('#tRows').addEventListener('click', e=>{ const b = e.target.closest('[data-deltrade]'); if (!b) return; TRADES.splice(+b.dataset.deltrade, 1); LS.set('neon.trades', TRADES); renderTrades(); });
-$('#tDate').value = new Date().toISOString().slice(0,10);
-$('#tExport').onclick = ()=> saveFile('trading-journal.csv', 'date,ticker,side,entry,exit,shares,pl\n' + TRADES.map(t=>[t.date,t.ticker,t.side,t.entry,t.exit,t.shares,pl(t).toFixed(2)].join(',')).join('\n'), 'text/csv');
-/* chart data */
+/* ---------- stock chart hologram (example data, for learning only) ---------- */
 let CHART = null;
 function exampleCandles(n=60){ const r = mulberry(99); let p = 100; const out = []; const d0 = Date.now() - n*864e5; for (let i=0;i<n;i++){ const o = p, c = Math.max(5, o*(1 + (r()-0.47)*0.05)), h = Math.max(o,c)*(1 + r()*0.015), l = Math.min(o,c)*(1 - r()*0.015); out.push({d:new Date(d0 + i*864e5).toISOString().slice(0,10), o, h, l, c}); p = c; } return out; }
-function parseCSV(text){
-  const lines = text.trim().split(/\r?\n/); const head = lines[0].toLowerCase().split(/[,;\t]/).map(s=>s.trim().replace(/"/g,''));
-  const idx = k => head.findIndex(h=>h===k || h.startsWith(k));
-  const di = idx('date'), oi = idx('open'), hi = idx('high'), li = idx('low'), ci = head.findIndex(h=>h==='close' || h==='adj close' || h.startsWith('close'));
-  if ([oi,hi,li,ci].some(i=>i<0)) throw new Error('Need columns named open, high, low and close.');
-  return lines.slice(1).map(l=>{ const c = l.split(/[,;\t]/).map(s=>s.replace(/"/g,'').trim()); return {d:di>=0 ? c[di] : '', o:+c[oi], h:+c[hi], l:+c[li], c:+c[ci]}; }).filter(x=>[x.o,x.h,x.l,x.c].every(v=>isFinite(v) && v > 0)).slice(-120);
-}
-function chartSummary(){
-  if (!CHART) return '';
-  const c = CHART.data, last = c[c.length-1], first = c[0];
-  const sma = n => c.length >= n ? c.slice(-n).reduce((a,x)=>a+x.c, 0)/n : null;
-  const hi = Math.max(...c.map(x=>x.h)), lo = Math.min(...c.map(x=>x.l));
-  return `${CHART.name}: ${c.length} days from ${first.d} to ${last.d}. First close ${first.c.toFixed(2)}, last close ${last.c.toFixed(2)} (${((last.c/first.c-1)*100).toFixed(1)}%). High ${hi.toFixed(2)}, low ${lo.toFixed(2)}. 10-day average ${sma(10)?.toFixed(2)}, 20-day average ${sma(20)?.toFixed(2) ?? 'n/a'}. Last 20 closes: ${c.slice(-20).map(x=>x.c.toFixed(2)).join(', ')}.`;
-}
-function showChart(data, name){ CHART = {data, name}; buildChartHolo(data); setHolo('chart'); $('#chartInfo').textContent = chartSummary().split('. Last 20')[0] + '.'; }
-$('#cExample').onclick = ()=> showChart(exampleCandles(), 'Example data (made up, not a real stock)');
-$('#cFile').addEventListener('change', async e=>{ const f = e.target.files?.[0]; if (!f) return; try{ const d = parseCSV(await f.text()); if (d.length < 5) throw new Error('Not enough rows.'); showChart(d, f.name.replace(/\.csv$/i,'')); }catch(err){ toast('Couldn’t read that file. ' + (err.message || '')); } e.target.value = ''; });
-$('#cExplain').onclick = ()=>{ if (!CHART){ toast('Show a chart first.'); return; } askAI(`Explain this price chart for a learner in 3 or 4 spoken sentences: the trend, what the moving averages suggest, and one thing to watch. This is education only, not advice. Data: ${chartSummary()}`); };
-HOOKS.commands.push(t=>{
-  if (/\b(trading desk|trading journal|open trading|risk calculator|position size)\b/.test(t)){ openTrade(/\brisk|position\b/.test(t) ? 'risk' : 'journal'); return 'Here is your trading desk. Remember, this is for learning, not financial advice.'; }
-  if (/\bhow am i doing (in|with) (trading|my trades)\b|\bmy trading stats\b/.test(t)){ const s = tradeStats(); return s.n ? `You have ${s.n} trades with a ${Math.round(s.win*100)} percent win rate and a total of ${money(s.total)}.` : 'Your journal is empty. Add trades in the trading desk.'; }
-  return undefined;
-});
+function showChart(data, name){ CHART = {data, name}; buildChartHolo(data); setHolo('chart'); }
 
 /* ---------- timers, reminders, focus ---------- */
 const TIMERS = LS.get('neon.timers', []);
@@ -2779,7 +2713,6 @@ function briefing(){
   parts2.push(rem.length ? `Today's reminders: ${listJoin(rem.map(r=>`${r.label} at ${new Date(r.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`))}.` : 'No reminders today.');
   const due = totalDue(); parts2.push(due ? `You have ${due} flashcards ready to review.` : 'Your flashcards are all caught up.');
   const focus = LS.get('neon.focusLog', {})[d.toDateString()] || 0; if (focus) parts2.push(`You finished ${focus} focus session${focus>1 ? 's' : ''} today.`);
-  const week = TRADES.filter(t=>Date.now() - new Date(t.date).getTime() < 7*864e5); if (week.length) parts2.push(`This week you logged ${week.length} trade${week.length>1?'s':''}, ${money(week.reduce((a,t)=>a+pl(t),0))} total.`);
   const r = REGIONS[REGION_IDS[Math.floor(Math.random()*REGION_IDS.length)]]; parts2.push(`Brain fact of the day: the ${r.name.toLowerCase()}. ${r.facts[Math.floor(Math.random()*r.facts.length)]}.`);
   speak(parts2.join(' '));
 }
@@ -2803,41 +2736,17 @@ HOOKS.commands.push(t=>{
   return undefined;
 });
 
-/* ---------- build apps and explain code ---------- */
-async function buildApp(desc){
-  desc = String(desc||'').trim(); if (!desc){ openCode(); return; }
-  const B = pickBrain('write code for ' + desc);
-  if (!B){ { autoAI(); speak('My AI brain is still starting up. Try again in a moment.'); }; return; }
-  speak('Building it now. Give me a moment.'); setSign('thinking'); $('#codeStatus').textContent = 'Building “' + desc + '”…'; showPanel('codeWin'); setCodeView('make');
-  try{
-    const r = await B.S(`Build a small, complete, working single-file web app: ${desc}.\nReturn ONLY the full HTML document, with all CSS in a <style> tag and all JavaScript in a <script> tag. No external libraries, images, fonts or network requests. Dark theme with glowing cyan accents, works with mouse and touch, mobile friendly.`, {cache:false});
-    let html = r.text; const m = html.match(/```(?:html)?\s*([\s\S]*?)```/i); if (m) html = m[1];
-    if (!/<(html|body|div|script|canvas)/i.test(html)) throw new Error('no html');
-    CODE.html = html; CODE.name = desc; showApp(); speak('Done! Here it is.');
-  }catch(e){ $('#codeStatus').textContent = ''; speak('I couldn’t build that one. Try describing it a little differently.'); setSign(mode==='off' ? 'idle' : 'listening'); }
-}
-const CODE = {html:'', name:''};
-function setCodeView(v){ for (const x of ['make','app','src','explain']) $('#cv-' + x).hidden = x !== v; }
-function openCode(view='make'){ showPanel('codeWin'); setCodeView(view); }
-function showApp(){ showPanel('codeWin'); setCodeView('app'); $('#codeTitle').textContent = capFirst(CODE.name); $('#appFrame').srcdoc = CODE.html; $('#codeStatus').textContent = ''; }
-$('#codeMake').addEventListener('submit', e=>{ e.preventDefault(); buildApp($('#codeDesc').value); });
-$('#codeSrcBtn').onclick = ()=>{ $('#codeSrc').value = CODE.html; setCodeView('src'); };
-$('#codeBack').onclick = ()=> showApp();
-$('#codeCopy').onclick = ()=> copyText(CODE.html);
-$('#codeSave').onclick = ()=> saveFile((CODE.name || 'app').replace(/[^\w-]+/g,'-').slice(0,40) + '.html', CODE.html, 'text/html');
-$('#codeRun').onclick = ()=>{ CODE.html = $('#codeSrc').value; showApp(); };
-$('#codeExplainBtn').onclick = ()=> setCodeView('explain');
+/* ---------- explain code ---------- */
+function openCode(){ showPanel('codeWin'); setTimeout(()=>$('#explainIn').focus(), 50); }
 $('#explainForm').addEventListener('submit', async e=>{
   e.preventDefault(); const code = $('#explainIn').value.trim(); if (!code) return;
-  const B = pickBrain('explain code ' + code); if (!B){ { autoAI(); speak('My AI brain is still starting up. Try again in a moment.'); }; return; }
+  const B = pickBrain('explain code ' + code); if (!B){ { openSmart(); speak('I need my AI brain for that. Connect it here, it is free.'); }; return; }
   $('#explainOut').textContent = 'Thinking…';
   try{ const r = await B.S(`Explain this code to a beginner: what it does overall, then the important parts. Plain English, short paragraphs, no markdown symbols.\n\n${code.slice(0, 12000)}`, {cache:false}); $('#explainOut').textContent = r.text.trim(); speak(r.text.split(/\n\n/)[0]); }
   catch(err){ $('#explainOut').textContent = aiErr(err); }
 });
 HOOKS.commands.push(t=>{
-  const m = t.match(/^(?:please )?(?:build|create|make|code) (?:me )?(?:an? |the )?(.+?\b(?:app|game|website|web page|page|calculator|tool|tracker|converter|clock|stopwatch|to-?do list|quiz app|generator|visualizer|simulator|dashboard)\b.*)$/);
-  if (m){ buildApp(m[1]); return null; }
-  if (/\bexplain (this |my |some )?code\b/.test(t)){ openCode('explain'); return 'Paste the code here and I will explain it.'; }
+  if (/\bexplain (this |my |some )?code\b/.test(t)){ openCode(); return 'Paste the code here and I will explain it.'; }
   if (/\bopen jarvis\b/.test(t)){ openJarvis(); return 'Opening Jarvis.'; }
   return undefined;
 });
@@ -3095,10 +3004,11 @@ const HOME_GROUPS = [
     T_('code','New deck by AI', ()=>'any topic', ()=>{ openStudy(); setTimeout(()=>$('#deckTopic').focus(), 50); }),
     T_('read','Read my homework', ()=>'hold it up', ()=>lookAt('read')),
   ]},
-  {name:'Money', items:[
-    T_('trade','Risk calculator', ()=>'position size', ()=>openTrade('risk')),
-    T_('study','Trade journal', ()=>{ const s = tradeStats(); return s.n ? money(s.total) + ' total' : 'no trades yet'; }, ()=>openTrade('journal')),
-    T_('chart','Chart lab', ()=>'load a CSV', ()=>openTrade('chart')),
+  {name:'AI', items:[
+    T_('msg','Conversation', ()=>'see what we said', ()=>openChat()),
+    T_('mic','Listening', ()=>wake ? 'on · say “Lumen…”' : 'off', ()=>setWake(!wake), ()=>wake),
+    T_('kb','Type a question', ()=>'air keyboard', ()=>openKeyboard()),
+    T_('read','Explain code', ()=>'paste any code', ()=>openCode()),
   ]},
   {name:'Tools', items:[
     T_('sun','Briefing', ()=>'your day', ()=>briefing()),
@@ -3116,6 +3026,8 @@ const HOME_GROUPS = [
     T_('face','How do I look?', ()=>'reads your face', ()=>readMood()),
     T_('face','Greet me', ()=>PRESENCE.on ? 'on' : 'off', ()=>setPresence(!PRESENCE.on), ()=>PRESENCE.on),
     T_('window','Window mode', ()=>V.window ? 'on' : 'off', ()=>setWindow(!V.window), ()=>V.window),
+    T_('cube','Shape mode', ()=>SHAPE.on ? 'on · swipe' : 'swipe holograms', ()=>setShape(!SHAPE.on), ()=>SHAPE.on),
+    T_('tools','Swipe menu', ()=>'browse by hand', ()=>openCar()),
     T_('hand','Train my signs', ()=>CUSTOM.length ? CUSTOM.length + ' custom' : 'teach LUMEN', ()=>openTrainer()),
   ]},
   {name:'Brain lab', items:[
@@ -3126,32 +3038,30 @@ const HOME_GROUPS = [
     T_('color','Color', ()=>THEMES[themeKey].name, ()=>{ const ks = Object.keys(THEMES); ACT.theme(ks[(ks.indexOf(themeKey)+1) % ks.length]); }),
     T_('freeze','Freeze', ()=>V.frozen ? 'frozen' : 'free', ()=>ACT.freeze(), ()=>V.frozen),
   ]},
-  {name:'Build', items:[
-    T_('code','Build an app', ()=>'describe it', ()=>openCode('make')),
-    T_('read','Explain code', ()=>'paste any code', ()=>openCode('explain')),
+  {name:'System', items:[
     T_('jarvis','Open Jarvis', ()=>'your 3D agents', ()=>openJarvis()),
     T_('gear','Settings', ()=>'voice, AI, look', ()=>openPanel('settings')),
-    T_('help','How to', ()=>'every command', ()=>openPanel('help')),
+    T_('help','How to', ()=>'every sign & command', ()=>openPanel('help')),
   ]},
 ];
-const STAY = new Set(['Brain','Earth','Solar system','Heart','Stock chart','Focus mode','Hand control','Greet me','Window mode','Explode','X-ray','Slice','Color','Freeze','Draw in the air']);
+const STAY = new Set(['Brain','Earth','Solar system','Heart','Stock chart','Focus mode','Hand control','Greet me','Window mode','Explode','X-ray','Slice','Color','Freeze','Draw in the air','Shape mode','Listening']);
 function renderHome(light){
   const d = new Date(), name = MEM.name ? ', ' + MEM.name : '';
   $('#hGreet').textContent = timeGreeting() + name;
   $('#hClock').textContent = d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
   $('#hDate').textContent = d.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
-  const next = TIMERS.slice().sort((a,b)=>a.at-b.at)[0], s = tradeStats(), focus = LS.get('neon.focusLog', {})[d.toDateString()] || 0;
+  const next = TIMERS.slice().sort((a,b)=>a.at-b.at)[0], focus = LS.get('neon.focusLog', {})[d.toDateString()] || 0;
   const W = [
     ['AI brain', AI_SOURCE==='none' ? 'Off' : (aiCfg()?.provider==='local' && AI_SOURCE==='own') ? (mlc ? 'Ready' : (mlcProgress ? mlcProgress.match(/\d+%/)?.[0] || 'Starting' : 'Starting')) : 'Online', AI_SOURCE==='none' ? 'tap to set up' : aiLabel(), ()=>openAISettings()],
     ['Next up', next ? fmtLeft(next.at - Date.now()) : '—', next ? next.label : 'no timers', ()=>{}],
     ['Flashcards', String(totalDue()), 'due to review', ()=>openStudy()],
-    ['Trading P/L', s.n ? money(s.total) : '$0.00', s.n ? `${s.n} trades · ${Math.round(s.win*100)}% wins` : 'journal empty', ()=>openTrade('journal')],
+    ['Hand signs', SHAPE.on ? 'Shape mode' : camOn ? 'Tracking' : 'Camera off', CUSTOM.length ? CUSTOM.length + ' custom signs' : (camOn ? 'show me a sign' : 'tap to turn on'), ()=>{ if (!camOn) startCamera(); else openPanel('help'); }],
     ['Focus today', String(focus), focus === 1 ? 'session' : 'sessions', ()=>startFocus(25)],
     ['Memory', String(MEM.facts.length), 'things I know', ()=>openMemory()],
   ];
   const wEls = $('#hWidgets').children;
   if (light && wEls.length === W.length){ W.forEach((w, i)=>{ const b = wEls[i].querySelector('b'), sp = wEls[i].querySelector('span'); if (b.textContent !== w[1]) b.textContent = w[1]; if (sp.textContent !== w[2]) sp.textContent = w[2]; }); homeEl._W = W; return; }
-  $('#hWidgets').innerHTML = W.map((w,i)=>`<button class="hw" data-air data-hw="${i}" type="button"><small>${esc(w[0])}</small><b class="${w[0]==='Trading P/L' && s.n ? (s.total>=0 ? 'up' : 'down') : ''}">${esc(w[1])}</b><span>${esc(w[2])}</span></button>`).join('');
+  $('#hWidgets').innerHTML = W.map((w,i)=>`<button class="hw" data-air data-hw="${i}" type="button"><small>${esc(w[0])}</small><b>${esc(w[1])}</b><span>${esc(w[2])}</span></button>`).join('');
   homeEl._W = W;
   $('#hGroups').innerHTML = HOME_GROUPS.map((g, gi)=>`<section class="hg"><h3>${esc(g.name.toUpperCase())}</h3><div class="htiles">${g.items.map((it, ii)=>{ let on = false, sub = ''; try{ on = !!it.on?.(); sub = it.sub(); }catch{} return `<button class="ht ${on ? 'on' : ''}" data-air data-ht="${gi}.${ii}" type="button"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[it.icon] || IC.help}</svg><span>${esc(it.label)}</span><small>${esc(sub)}</small></button>`; }).join('')}</div></section>`).join('');
   $('#hPersona').innerHTML = Object.keys(PERSONAS).map(p=>`<button class="pc ${p===persona ? 'on' : ''}" data-air data-persona="${p}" type="button">${capFirst(p)}</button>`).join('');
@@ -3174,7 +3084,7 @@ HOOKS.commands.push(t=>{
 });
 
 /* side dock */
-const RAIL = [['home','tour','Home'],['holo','cube','Holograms'],['study','study','Study'],['trade','trade','Trading'],['tools','tools','Tools'],['vision','eye','Vision'],['build','code','Build'],['memory','chip','Memory'],['settings','gear','Settings']];
+const RAIL = [['home','tour','Home'],['holo','cube','Holograms'],['study','study','Study'],['ai','msg','Conversation'],['tools','tools','Tools'],['vision','eye','Vision'],['shape','planet','Shape mode'],['memory','chip','Memory'],['settings','gear','Settings']];
 $('#rail').innerHTML = RAIL.map(([id, ic, label])=>`<button class="rb" data-rail="${id}" type="button" aria-label="${label}"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[ic]}</svg><span>${label}</span></button>`).join('');
 function setRail(id){ document.querySelectorAll('.rb').forEach(b=>b.classList.toggle('on', b.dataset.rail===id)); }
 $('#rail').addEventListener('click', e=>{
@@ -3182,7 +3092,7 @@ $('#rail').addEventListener('click', e=>{
   if (id==='home'){ homeOpen() ? closeHome() : openHome(); return; }
   closeHome();
   if (['holo','tools','vision','build'].includes(id)){ openMenu(); menuPath = id; renderMenu(); setRail(id); return; }
-  ({study:()=>openStudy(), trade:()=>openTrade(), memory:openMemory, settings:()=>openPanel('settings')})[id]?.();
+  ({study:()=>openStudy(), ai:()=>openChat(), shape:()=>setShape(!SHAPE.on), memory:openMemory, settings:()=>openPanel('settings')})[id]?.();
   setRail(id);
 });
 $('#homeBtn').onclick = ()=> homeOpen() ? closeHome() : openHome();
@@ -3197,12 +3107,9 @@ function autoAI(){
   let saved = null; try{ saved = JSON.parse(localStorage.getItem('neon.ai') || 'null'); }catch{}
   if (saved && saved.provider==='none') return;                     // you turned it off on purpose
   if (ONLINE.sample){ sample = ONLINE.sample; sampleLimits = ONLINE.limits; AI_SOURCE = 'own'; aiReady(); return; }   // a key from Jarvis
-  if (!navigator.gpu) return;
-  const c = {provider:'local', model:LOCAL_MODELS[0].id, key:'', base:''};
-  saveAiCfg(c); useOwnAI(); aiReady();
-  startLocal(c.model);
 }
 function startLocal(model, retried){
+  LS.set('neon.localChosen', true);
   $('#aiTxt').textContent = 'STARTING…';
   localEngine(model).then(()=>{ aiReady(); if (homeOpen()) renderHome(); toast('My built-in AI brain is ready. Ask me anything!', 4000); })
     .catch(e=>{
@@ -3220,7 +3127,7 @@ if (KEEP) setTimeout(()=>{ if (!sessionStorage.getItem('neon.tipFile')){ try{ se
    ===================================================================== */
 
 /* ---------- swipe menu (a carousel you browse with your hand) ---------- */
-const GROUP_ICON = {'Holograms':'cube', 'Learn':'study', 'Money':'trade', 'Tools':'tools', 'Eyes & hands':'eye', 'Brain lab':'xray', 'Build':'code'};
+const GROUP_ICON = {'Holograms':'cube', 'Learn':'study', 'AI':'msg', 'System':'gear', 'Tools':'tools', 'Eyes & hands':'eye', 'Brain lab':'xray', 'Build':'code'};
 const CAR = {open:false, level:'cats', gi:0, idx:0};
 const carEl = $('#carousel');
 const carOpen = ()=> CAR.open;
@@ -3312,7 +3219,7 @@ function handsFree(found, h, g, now, p){
 
   // a quick sideways sweep with an open hand = swipe
   const old = HF.hist.find(q=>now - q.t < 430);
-  if (old && now > HF.swipeCool && HF.hist.length >= 4 && !uiOpen){
+  if (old && now > HF.swipeCool && HF.hist.length >= 4 && CAR.open){
     const dx = h.palm.x - old.x, dy = h.palm.y - old.y;
     const openish = HF.hist.filter(q=>q.g==='open' || q.g==='other').length / HF.hist.length;
     if (Math.abs(dx) > 0.19 && Math.abs(dy) < Math.abs(dx)*0.6 && openish >= 0.6){
@@ -3405,24 +3312,33 @@ async function fixGeminiModel(){
   try{ const m = await detectGemini(c.key); if (m && m !== c.model){ saveAiCfg({...c, model:m}); useOwnAI(); aiReady(); return true; } }catch{}
   return false;
 }
-async function connectGemini(key){
-  key = String(key || '').trim().replace(/^["']|["']$/g, '');
+async function connectGemini(key, onStep){
+  key = String(key || '').replace(/\s+/g, '').replace(/^["']|["']$/g, '');
   if (!key) throw aiE('bad_key', 'Paste your key first.');
-  let model = 'gemini-flash-latest';
-  try{ model = await detectGemini(key) || model; }catch(e){ if (e?.code==='bad_key' || e?.code==='network') throw e; }
-  const c = {provider:'gemini', model, key, base:''};
-  await makeOwnSample(c)('Reply with just the word OK.');
-  saveAiCfg(c); useOwnAI(); aiReady(); return c;
+  if (!/^AIza[\w-]{20,}$/.test(key) && !/^AQ\./.test(key)) onStep?.('That doesn’t look like a usual Gemini key (they start with “AIza”), trying anyway…');
+  let list = [];
+  try{ const best = await detectGemini(key); if (best) list.push(best); }
+  catch(e){ if (e?.code==='bad_key') throw aiE('bad_key', 'Google says this key is not valid. Copy it again from aistudio.google.com/apikey (press the copy button next to the key).'); if (e?.code==='network') throw aiE('network', 'Couldn’t reach Google. Check your internet connection, and turn off any ad blocker or VPN for this page.'); }
+  for (const m of ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite']) if (!list.includes(m)) list.push(m);
+  let last = null;
+  for (const model of list){
+    onStep?.('Trying ' + model + '…');
+    const c = {provider:'gemini', model, key, base:''};
+    try{ await makeOwnSample(c)('Reply with just the word OK.'); saveAiCfg(c); useOwnAI(); aiReady(); return c; }
+    catch(e){ last = e; if (e?.code==='bad_key' || e?.code==='network') break; }
+  }
+  if (last?.code==='rate_limited') throw aiE('rate_limited', 'Google says the free limit is used up for now. Wait a minute and try again. (' + (last.message || '').slice(0, 120) + ')');
+  throw last || aiE('upstream_error', 'Gemini didn’t answer.');
 }
 function openSmart(){ showPanel('smart'); $('#smartOut').textContent = aiCfg()?.provider==='gemini' ? 'Already connected to Google Gemini (' + aiCfg().model + '). You can paste a new key to replace it.' : ''; }
 $('#smartForm').addEventListener('submit', async e=>{
   e.preventDefault(); $('#smartOut').textContent = 'Connecting…'; $('#smartGo').disabled = true;
-  try{ const c = await connectGemini($('#smartKey').value); $('#smartKey').value = ''; $('#smartOut').textContent = 'Connected to ' + c.model + '!'; speak('I am connected to Google Gemini now, so I am much smarter. Ask me anything.'); setTimeout(()=>hidePanel('smart'), 1800); if (homeOpen()) renderHome(); }
+  try{ const c = await connectGemini($('#smartKey').value, m=>{ $('#smartOut').textContent = m; }); $('#smartKey').value = ''; $('#smartOut').textContent = 'Connected to ' + c.model + '!'; speak('I am connected to Google Gemini now, so I am much smarter. Ask me anything.'); setTimeout(()=>hidePanel('smart'), 1800); if (homeOpen()) renderHome(); }
   catch(err){ $('#smartOut').textContent = 'That didn’t work: ' + (err?.message || aiErr(err)); }
   finally{ $('#smartGo').disabled = false; }
 });
 HOOKS.commands.push(t=> /\b(make (yourself|you) smarter|connect (to )?gemini|smarter ai|upgrade (your )?brain|get smarter)\b/.test(t) ? (openSmart(), 'Here is how to make me smarter. It is free and takes two minutes.') : undefined);
-HOME_GROUPS.find(g=>g.name==='Build')?.items.unshift(T_('sun', 'Smarter AI', ()=> aiCfg()?.provider==='gemini' ? 'Gemini connected' : 'free upgrade', ()=>openSmart(), ()=> aiCfg()?.provider==='gemini'));
+HOME_GROUPS.find(g=>g.name==='AI')?.items.unshift(T_('sun', 'Smarter AI', ()=> aiCfg()?.provider==='gemini' ? 'Gemini connected' : 'free upgrade', ()=>openSmart(), ()=> aiCfg()?.provider==='gemini'));
 HOOKS.frame.push(()=>{ if (homeOpen()){ const b = $('#hSmart'); if (b) b.hidden = aiCfg()?.provider==='gemini'; } });
 $('#hSmart').onclick = ()=>{ closeHome(); setTimeout(openSmart, 120); };
 
@@ -3446,8 +3362,172 @@ async function permState(name){ try{ return (await navigator.permissions.query({
   if (LS.get('neon.autoListen', false) && await permState('microphone')==='granted' && mode==='off') setMode('wake');
 })();
 
+/* =====================================================================
+   LUMEN v8: shape mode, air click, conversation, speed
+   ===================================================================== */
+
+/* ---------- the built-in AI only downloads when you choose it ---------- */
+try{ const c0 = JSON.parse(localStorage.getItem('neon.ai') || 'null'); if (c0?.provider==='local' && !LS.get('neon.localChosen', false)) localStorage.removeItem('neon.ai'); }catch{}
+$('#smartLocal').onclick = ()=>{
+  if (!navigator.gpu){ $('#smartOut').textContent = 'This browser can’t run the offline brain (no WebGPU). Use Chrome or Edge, or connect Gemini.'; return; }
+  const c = {provider:'local', model:LOCAL_MODELS[1].id, key:'', base:''};
+  saveAiCfg(c); useOwnAI(); aiReady(); startLocal(c.model);
+  $('#smartOut').textContent = 'Downloading the offline brain (about 0.9 GB, one time only). LUMEN may feel slow until it finishes.';
+};
+
+/* ---------- shape mode: make a sign, then swipe through the holograms ---------- */
+const SHAPE = {on:false};
+const SLIDES = [];
+function setShape(on){
+  SHAPE.on = on; HF.hist = []; document.body.classList.toggle('shape', on);
+  $('#shapeBar').hidden = !on; renderShapeBar();
+  flash(on ? '✌' : '◉', on ? 'Shape mode' : 'Shape mode off', on ? 'swipe left or right · ✌ or ✊ to exit' : '');
+  readoutLock = performance.now() + 1500; beep(on ? 880 : 520, 90);
+  if (on && !camOn) startCamera();
+  try{ renderMenu(); }catch{}
+}
+function renderShapeBar(){ $('#shapeList').innerHTML = HOLO_ORDER.map(k=>`<button class="${k===HOLO.mode ? 'on' : ''}" data-shape="${k}" data-air type="button">${HOLO_NAMES[k]}</button>`).join(''); }
+$('#shapeBar').addEventListener('click', e=>{
+  const b = e.target.closest('[data-shape]'); if (b){ const dir = HOLO_ORDER.indexOf(b.dataset.shape) > HOLO_ORDER.indexOf(HOLO.mode) ? 1 : -1; slideTo(b.dataset.shape, dir); return; }
+  if (e.target.closest('#shapePrev')) slideStep(-1); else if (e.target.closest('#shapeNext')) slideStep(1); else if (e.target.closest('#shapeExit')) setShape(false);
+});
+const holoObj = k => k==='brain' ? brain : HOLO.groups[k];
+function slideTo(k, dir){
+  if (k===HOLO.mode) return;
+  const prev = HOLO.mode, oldObj = holoObj(prev);
+  if (k==='chart' && !CHART){ CHART = {data:exampleCandles(), name:'Example data'}; buildChartHolo(CHART.data); }
+  setHolo(k, false);
+  const newObj = holoObj(k);
+  for (let i=SLIDES.length-1; i>=0; i--) if (SLIDES[i].obj===newObj || SLIDES[i].obj===oldObj){ const q = SLIDES[i]; if (q.hide && q.obj!==newObj) q.obj.visible = false; q.obj.position.x = 0; SLIDES.splice(i, 1); }
+  for (const k2 of HOLO_ORDER){ const o = holoObj(k2); if (o && o!==newObj && o!==oldObj){ o.visible = false; o.position.x = 0; } }
+  if (newObj){ newObj.scale.setScalar(1); newObj.position.x = dir*3.4; SLIDES.push({obj:newObj, from:dir*3.4, to:0, t:0}); }
+  if (oldObj && oldObj !== newObj){ oldObj.visible = true; SLIDES.push({obj:oldObj, from:0, to:-dir*3.4, t:0, hide:true}); }
+  renderShapeBar(); showHoloStrip(); beep(dir > 0 ? 700 : 560, 40);
+  flash('◈', HOLO_NAMES[k]); readoutLock = performance.now() + 900;
+}
+function slideStep(dir){ const i = HOLO_ORDER.indexOf(HOLO.mode); slideTo(HOLO_ORDER[(i + dir + HOLO_ORDER.length) % HOLO_ORDER.length], dir); }
+holoStep = slideStep;
+HOOKS.frame.push(dt=>{
+  for (let i=SLIDES.length-1; i>=0; i--){
+    const s = SLIDES[i]; s.t = Math.min(1, s.t + dt/0.5); const e = 1 - Math.pow(1 - s.t, 3);
+    s.obj.position.x = s.from + (s.to - s.from)*e;
+    if (s.t >= 1){ s.obj.position.x = s.hide ? 0 : s.to; if (s.hide && s.obj !== holoObj(HOLO.mode)) s.obj.visible = false; SLIDES.splice(i, 1); }
+  }
+});
+HOOKS.commands.push(t=>{
+  if (/\b(shape mode|swipe mode|gallery mode)\b/.test(t)){ const off = /\b(off|stop|exit|close)\b/.test(t); setShape(!off); return off ? 'Shape mode off.' : 'Shape mode. Swipe your hand left or right to change the shape.'; }
+  if (SHAPE.on && /^(next|next one|next shape)$/.test(t)){ slideStep(1); return null; }
+  if (SHAPE.on && /^(back|previous|previous one|go back|last one)$/.test(t)){ slideStep(-1); return null; }
+  return undefined;
+});
+
+/* ---------- air click: point to aim, then a quick pinch (or hold) to click anything ---------- */
+const CLICKABLE = 'button, a[href], select, [data-air], .rb, .ht, .hw, .car-card, .mi';
+function airClick(a){
+  const el = document.elementFromPoint(a.x, a.y);
+  ripple(a.x, a.y);
+  const c = el?.closest(CLICKABLE);
+  if (c && !c.closest('#stage')){ if (c.tagName==='SELECT'){ c.selectedIndex = (c.selectedIndex + 1) % c.options.length; c.dispatchEvent(new Event('change', {bubbles:true})); } else c.click(); flash('👆', 'Click'); return true; }
+  if (el && el.closest('#stage')){ tap(a.x, a.y); flash('👆', 'Tap'); return true; }
+  return false;
+}
+function ripple(x, y){ const r = document.createElement('div'); r.className = 'airRipple'; r.style.left = x + 'px'; r.style.top = y + 'px'; document.body.appendChild(r); setTimeout(()=>r.remove(), 600); }
+const AC = {lastAim:null, pinchAt:0, pinchAim:null, pinchYaw:null, prevG:'none', dwellEl:null, dwellSince:0};
+function airPointer(g, h, p, now){
+  const ui = menuOpen() || airOpen() || homeOpen() || CAR.open || [...document.querySelectorAll('.panel-card')].some(x=>!x.hidden);
+  if (g==='point'){ AC.lastAim = {...toScreen(p.tx, p.ty), t:now}; }
+  // quick pinch right after pointing = click where you were pointing
+  if (g==='pinch' && AC.prevG!=='pinch'){ AC.pinchAt = now; AC.pinchAim = AC.lastAim && now - AC.lastAim.t < 900 ? AC.lastAim : null; AC.pinchYaw = {yaw:V.yawT, pitch:V.pitchT}; }
+  if (g!=='pinch' && AC.prevG==='pinch' && AC.pinchAim && now - AC.pinchAt < 480 && !ui){
+    if (AC.pinchYaw){ V.yawT = AC.pinchYaw.yaw; V.pitchT = AC.pinchYaw.pitch; V.yawVel = 0; }
+    airClick(AC.pinchAim); AC.pinchAim = null;
+  }
+  AC.prevG = g;
+  // point and hold on any button on screen (top buttons, dock, shape bar…)
+  if (g==='point' && !ui){
+    const a = AC.lastAim, el = document.elementFromPoint(a.x, a.y)?.closest(CLICKABLE);
+    if (el && !el.closest('#stage')){
+      document.querySelectorAll('.air-hot').forEach(x=>{ if (x!==el) x.classList.remove('air-hot'); }); el.classList.add('air-hot');
+      if (AC.dwellEl !== el){ AC.dwellEl = el; AC.dwellSince = now; }
+      const prog = clamp((now - AC.dwellSince)/850, 0, 1); setCursor(a, prog);
+      if (prog >= 1){ AC.dwellEl = null; el.classList.remove('air-hot'); airClick(a); AC.dwellSince = now + 500; }
+      if (now > readoutLock) readout('☝', 'Pointer', 'hold, or pinch quickly, to click', h.conf);
+      return true;
+    }
+    AC.dwellEl = null; document.querySelectorAll('.air-hot').forEach(x=>x.classList.remove('air-hot'));
+  }
+  return false;
+}
+
+/* ---------- shape-mode gestures (runs before everything else) ---------- */
+const SM = {hist:[], cool:0};
+function shapeGestures(h, g, now, p){
+  // peace sign held = shape mode on / off (when nothing is open)
+  const ui = menuOpen() || airOpen() || homeOpen() || CAR.open || [...document.querySelectorAll('.panel-card')].some(x=>!x.hidden);
+  if (g==='peace' && !ui){
+    if (hfOnce('peace', 600, now)){ st.held = true; setShape(!SHAPE.on); }
+    else if (now > readoutLock) readout('✌', 'Peace sign', 'hold to turn shape mode ' + (SHAPE.on ? 'off' : 'on'), h.conf);
+    setCursor(null); return true;
+  }
+  if (!SHAPE.on) return false;
+  if (ui) return false;
+  if (g==='fist'){ if (hfOnce('fist', 450, now)){ st.held = true; setShape(false); } setCursor(null); return true; }
+  SM.hist.push({t:now, x:h.palm.x, y:h.palm.y}); SM.hist = SM.hist.filter(q=>now - q.t < 400);
+  const o = SM.hist[0];
+  if (o && now > SM.cool && SM.hist.length >= 3 && g !== 'pinch'){
+    const dx = h.palm.x - o.x, dy = h.palm.y - o.y;
+    if (Math.abs(dx) > 0.12 && Math.abs(dy) < Math.abs(dx)*0.75){
+      const dir = dx < 0 ? 1 : -1; SM.cool = now + 650; SM.hist = [];
+      slideStep(dir); flash(dir > 0 ? '👈' : '👉', dir > 0 ? 'Next shape' : 'Previous shape'); readoutLock = performance.now() + 700;
+      return true;
+    }
+  }
+  if (g==='open' || g==='other'){ setCursor(null); if (now > readoutLock) readout('✋', 'Shape mode', 'swipe left or right · ✌ or ✊ to exit', h.conf); st.prevPalm = null; return true; }
+  return false;
+}
+
+/* ---------- conversation panel: see everything you and LUMEN said ---------- */
+const LOG = [];
+{ const _cap = caption;
+  caption = (who, text, el)=>{
+    const out = _cap(who, text, el);
+    if (!/^(\s*…|\.\.\.)/.test(text) && !/ …$/.test(text)){
+      let e = LOG.find(x=>x.el===out);
+      if (!e){ e = {who, text, el:out, at:Date.now()}; LOG.push(e); if (LOG.length > 120) LOG.shift(); } else e.text = text;
+      if (!$('#chat').hidden) renderChat();
+    }
+    return out;
+  };
+}
+function renderChat(){
+  const box = $('#chatLog'); const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.innerHTML = LOG.length ? LOG.map(x=>`<div class="msg ${x.who}"><small>${x.who==='you' ? 'YOU' : 'LUMEN'} · ${new Date(x.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</small><p>${esc(x.text.replace(/^You: /, ''))}</p></div>`).join('') : '<p class="note">Nothing yet. Say “Lumen”, then ask me anything.</p>';
+  if (atEnd) box.scrollTop = box.scrollHeight;
+  $('#chatBrain').textContent = AI_SOURCE==='none' ? 'No AI brain connected' : aiLabel();
+}
+function openChat(){ showPanel('chat'); renderChat(); $('#chatLog').scrollTop = 1e9; }
+$('#chatForm').addEventListener('submit', e=>{ e.preventDefault(); const t = $('#chatIn').value.trim(); if (!t) return; $('#chatIn').value = ''; caption('you', t); handleUtterance([t]); });
+$('#chatKb').onclick = ()=> openKeyboard(t=>{ openChat(); caption('you', t); handleUtterance([t]); }, 'Send ↵');
+$('#chatMic').onclick = ()=>{ if (!wake) setWake(true); else toast('I’m listening. Say “Lumen”, then your question.'); };
+$('#chatClear').onclick = ()=>{ LOG.length = 0; convo.length = 0; renderChat(); };
+HOOKS.commands.push(t=> /\b(show|open) (the |our )?(conversation|chat|history)\b|\bwhat did (i|you) (just )?say\b/.test(t) ? (openChat(), null) : undefined);
+
+/* ---------- speed: adaptive quality ---------- */
+const PERF = {pr:Math.min(devicePixelRatio || 1, 1.25), max:Math.min(devicePixelRatio || 1, 1.5), acc:0, n:0, slowFor:0, fastFor:0};
+function applyPR(){ renderer.setPixelRatio(PERF.pr); composer.setPixelRatio(PERF.pr); resize(); }
+applyPR();
+HOOKS.frame.push(dt=>{
+  if (document.hidden) return;
+  PERF.acc += dt; PERF.n++;
+  if (PERF.acc < 1.5) return;
+  const fps = PERF.n / PERF.acc; PERF.acc = 0; PERF.n = 0;
+  if (fps < 38){ PERF.slowFor++; PERF.fastFor = 0; } else if (fps > 57){ PERF.fastFor++; PERF.slowFor = 0; } else { PERF.slowFor = 0; PERF.fastFor = 0; }
+  if (PERF.slowFor >= 2 && PERF.pr > 0.6){ PERF.pr = Math.max(0.6, PERF.pr - 0.2); PERF.slowFor = 0; applyPR(); }
+  else if (PERF.fastFor >= 5 && PERF.pr < PERF.max){ PERF.pr = Math.min(PERF.max, PERF.pr + 0.15); PERF.fastFor = 0; applyPR(); }
+});
+
 /* ---------- resize ---------- */
-function resize(){ const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w,h); composer.setSize(w,h); bloom.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix(); if (menuOpen()) renderMenu(); }
+function resize(){ const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w,h); composer.setSize(w,h); bloom.setSize(Math.round(w*0.5), Math.round(h*0.5)); camera.aspect = w/h; camera.updateProjectionMatrix(); if (menuOpen()) renderMenu(); }
 addEventListener('resize', resize);
 
 /* ---------- main loop ---------- */
@@ -3514,7 +3594,7 @@ function frame(){
   xray += (((inner || XRAY.on) ? 1 : 0) - xray)*Math.min(1, dt*4);
   const breath = 0.05*Math.sin(t*1.3);
   const decay = Math.exp(-dt*2.4);
-  for (const p of parts){
+  if (brain.visible) for (const p of parts){
     const C = p.colors.array, G = p.glow, P = p.P, Wt = p.w, rs = ripples.filter(r=>r.part===p);
     const baseI = (p.inner ? 0.1 + xray*0.12 : (0.11 + breath*0.8 + activity*0.06)*(1 - xray*0.6)) * flicker;
     for (let i=0;i<p.n;i++){
@@ -3548,7 +3628,7 @@ requestAnimationFrame(frame);
 setTimeout(()=>{ const b = $('#boot'); b.style.opacity = 0; setTimeout(()=>b.remove(), 900); }, 500);
 for (let i=0;i<120;i++) spawnSpark();
 addEventListener('pointerdown', ()=>{ if ('speechSynthesis' in window) loadVoices(); }, {once:true});
-Object.assign(window.NEON_TEST, {openCar, closeCar, CAR, holoStep, goBack, handsFree, HF, confirmYes, get pending(){ return pendingConfirm; }, setConf:v=>{ lastConf = v; }, detectGemini, openHome, closeHome, KEEP, say:handleUtterance, ACT, HOLO, setHolo, MEM, TIMERS, DECKS, STUDY, TRADES, PYR, EXP, XRAY, SLICE, DRAW, KB, CUSTOM, checkAnswer, parseClock, parseDuration, pickBrain, menu:()=>menuPath});
+Object.assign(window.NEON_TEST, {processHands, SHAPE, setShape, shapeGestures, airPointer, airClick, slideStep, LOG, openChat, PERF, connectGemini, openCar, closeCar, CAR, holoStep, goBack, handsFree, HF, confirmYes, get pending(){ return pendingConfirm; }, setConf:v=>{ lastConf = v; }, detectGemini, openHome, closeHome, KEEP, say:handleUtterance, ACT, HOLO, setHolo, MEM, TIMERS, DECKS, STUDY, PYR, EXP, XRAY, SLICE, DRAW, KB, CUSTOM, checkAnswer, parseClock, parseDuration, pickBrain, menu:()=>menuPath});
 </script>
 
 </body>
