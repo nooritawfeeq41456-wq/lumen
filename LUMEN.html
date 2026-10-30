@@ -495,7 +495,7 @@ body.shape #holoStrip{display:none!important}
     <div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" id="autoOnBtn" type="button"><span class="led"></span>Online AI for hard questions</button><button class="btn" id="presenceBtn" type="button"><span class="led"></span>Greet me when I sit down</button></div>
     <p class="note">With the Built-in AI on, LUMEN answers quick things itself and sends hard questions (explain, solve, write code) to your online AI if you added a key. Greeting uses the camera to notice when you sit down; the video never leaves this computer.</p>
     <h3>LOOK</h3>
-    <div class="row" style="flex-wrap:wrap"><button class="btn on" id="baseBtn" type="button"><span class="led"></span>Projector base</button><button class="btn on" id="spinBtn" type="button"><span class="led"></span>Auto-spin</button><button class="btn on" id="homeStartBtn" type="button"><span class="led"></span>Open Home at start</button></div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn on" id="baseBtn" type="button"><span class="led"></span>Projector base</button><button class="btn on" id="spinBtn" type="button"><span class="led"></span>Auto-spin</button><button class="btn on" id="homeStartBtn" type="button"><span class="led"></span>Open Home at start</button><button class="btn" id="liteBtn" type="button"><span class="led"></span>Low-power mode (faster)</button><button class="btn" id="swapBtn" type="button"><span class="led"></span>Swap hand colors</button></div>
     <h3>AI BRAIN</h3>
     <p class="note" id="aiState"></p>
     <div class="actions"><button class="btn primary" id="openAI" type="button">AI settings</button></div>
@@ -1138,7 +1138,7 @@ async function startCamera(){
   starting = true; const btn = $('#camBtn'); btn.lastChild.textContent = 'Starting…';
   try{
     if (!navigator.mediaDevices?.getUserMedia) throw {name:'NoMedia'};
-    stream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280}, height:{ideal:720}, frameRate:{ideal:30}, facingMode:'user'}, audio:false});
+    stream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:30}, facingMode:'user'}, audio:false});
   }catch(e){
     starting = false; btn.lastChild.textContent = 'Hand control';
     toast(e?.name==='NotAllowedError'
@@ -1185,7 +1185,7 @@ function setCursor(p, dwell=0){
   cursorEl.style.setProperty('--dw', dwell);
 }
 function runTracker(now){
-  if (gestRec){ const r = gestRec.recognizeForVideo(video, now); return {landmarks:r.landmarks, worldLandmarks:r.worldLandmarks, gestures:r.gestures}; }
+  if (gestRec){ const r = gestRec.recognizeForVideo(video, now); return {landmarks:r.landmarks, worldLandmarks:r.worldLandmarks, gestures:r.gestures, handedness:r.handedness || r.handednesses}; }
   return handLm.detectForVideo(video, now);
 }
 const toScreen = (x, y)=>({x:clamp((x-0.14)/0.72, 0, 1)*innerWidth, y:clamp((y-0.12)/0.66, 0, 1)*innerHeight});
@@ -1194,12 +1194,14 @@ const hands = [];
 let st = {stable:'none', votes:[], since:0, prevPalm:null, grab:null, held:false, lostAt:0, prevCls:null};
 let twoHand = null, waveHist = [], waveCool = 0, dwell = {el:null, region:-1, since:0, lastSpark:0};
 const GLYPH = {open:'✋', pinch:'🤏', point:'☝', fist:'✊', peace:'✌', thumbs:'👍', thumbsdown:'👎', rock:'🤘', other:'🖐', none:'◉'};
-const NAMES = {open:'Open hand', pinch:'Pinch', point:'Pointing', fist:'Fist', peace:'Peace', thumbs:'Thumbs up', thumbsdown:'Thumbs down', rock:'Rock sign', other:'Hand seen'};
+const NAMES = {none:'No sign', open:'Open hand', pinch:'Pinch', point:'Pointing', fist:'Fist', peace:'Peace', thumbs:'Thumbs up', thumbsdown:'Thumbs down', rock:'Rock sign', other:'Hand seen'};
 
 function processHands(res, now){
   const L = res.landmarks || [], WL = res.worldLandmarks || [], GS = res.gestures || [];
-  const found = L.map((lm, i)=>{ const c = classify(lm, WL[i], i===0 ? st.prevCls : null); const d = decide(c, GS[i]?.[0]); c.g = d.g; c.conf = d.conf; c.src = d.src; return c; });
-  found.sort((a,b)=> b.size - a.size);
+  const HD = res.handedness || res.handednesses || [];
+  const found = L.map((lm, i)=>{ const side = handSide(HD[i], lm); const c = classify(lm, WL[i], st.prevCls && st.prevCls.side===side ? st.prevCls : null); c.side = side; const d = decide(c, GS[i]?.[0]); c.g = d.g; c.conf = d.conf; c.src = d.src; return c; });
+  if (found.length===2 && found[0].side===found[1].side){ const [a, b] = found[0].palm.x > found[1].palm.x ? [found[0], found[1]] : [found[1], found[0]]; a.side = 'R'; b.side = 'L'; }
+  found.sort((a,b)=> (a.side==='R' ? 0 : 1) - (b.side==='R' ? 0 : 1) || b.size - a.size);
   hands.length = 0; hands.push(...found);
   $('#handCount').textContent = String(found.length);
   if (!found.length){
@@ -1218,6 +1220,7 @@ function processHands(res, now){
     if (!twoHand) twoHand = {d, dist:V.distT};
     V.distT = clamp(twoHand.dist * Math.pow(twoHand.d / Math.max(0.05, d), 1.3), 2.2, 8);
     st.prevPalm = null; st.grab = null; setCursor(null);
+    $('#camG').textContent = 'TWO HANDS';
     if (now > readoutLock) readout('🙌', 'Two hands', 'apart to zoom in, together to zoom out', 1);
     return;
   }
@@ -1231,7 +1234,7 @@ function processHands(res, now){
   const px = F.px.f(h.palm.x, now), py = F.py.f(h.palm.y, now);
   const tx = F.tx.f(h.tip.x, now), ty = F.ty.f(h.tip.y, now);
   const qx = F.qx.f(h.pinchPt.x, now), qy = F.qy.f(h.pinchPt.y, now);
-  $('#camG').textContent = (NAMES[g]||labelOf(g)).toUpperCase() + (h.src==='yours' ? ' · YOURS' : h.src==='model' ? ' · AI' : '');
+  $('#camG').textContent = (h.side==='L' ? 'LEFT · ' : 'RIGHT · ') + (NAMES[g]||labelOf(g)).toUpperCase() + (h.src==='yours' ? ' · YOURS' : h.src==='model' ? ' · AI' : '');
 
   const P5 = {px, py, tx, ty, qx, qy};
   if (shapeGestures(h, g, now, P5)) return;
@@ -1303,12 +1306,13 @@ function detectWave(hist){
   return turns >= 3 && travel > 0.4;
 }
 function drawOverlay(){
-  const w = ov.width = ov.clientWidth * devicePixelRatio, hgt = ov.height = ov.clientHeight * devicePixelRatio;
+  const W2 = Math.round(ov.clientWidth * devicePixelRatio), H2 = Math.round(ov.clientHeight * devicePixelRatio);
+  if (ov.width !== W2 || ov.height !== H2){ ov.width = W2; ov.height = H2; }
+  const w = ov.width, hgt = ov.height;
   octx.clearRect(0,0,w,hgt); octx.lineWidth = 2*devicePixelRatio; octx.lineCap = 'round';
-  const css = getComputedStyle(document.documentElement);
   hands.forEach((h, k)=>{
     const P = h.pts.map(p=>({x:(1-p.x)*w, y:p.y*hgt}));
-    octx.strokeStyle = k===0 ? css.getPropertyValue('--holo') : css.getPropertyValue('--node'); octx.shadowColor = octx.strokeStyle; octx.shadowBlur = 8*devicePixelRatio;
+    octx.strokeStyle = h.side==='L' ? '#' + NODE.getHexString() : '#' + ACC.getHexString(); octx.shadowColor = octx.strokeStyle; octx.shadowBlur = 8*devicePixelRatio;
     octx.beginPath(); for (const [a,b] of CONN){ octx.moveTo(P[a].x, P[a].y); octx.lineTo(P[b].x, P[b].y); } octx.stroke();
     octx.fillStyle = '#fff'; for (const i of [4,8,12,16,20]){ octx.beginPath(); octx.arc(P[i].x, P[i].y, 3*devicePixelRatio, 0, Math.PI*2); octx.fill(); }
   });
@@ -3513,7 +3517,8 @@ $('#chatClear').onclick = ()=>{ LOG.length = 0; convo.length = 0; renderChat(); 
 HOOKS.commands.push(t=> /\b(show|open) (the |our )?(conversation|chat|history)\b|\bwhat did (i|you) (just )?say\b/.test(t) ? (openChat(), null) : undefined);
 
 /* ---------- speed: adaptive quality ---------- */
-const PERF = {pr:Math.min(devicePixelRatio || 1, 1.25), max:Math.min(devicePixelRatio || 1, 1.5), acc:0, n:0, slowFor:0, fastFor:0};
+let lastTrackAt = 0, COLF = false;
+const PERF = {lite:LS.get('neon.lite', false), auto:true, slow:false, pr:Math.min(devicePixelRatio || 1, 1.25), max:Math.min(devicePixelRatio || 1, 1.5), acc:0, n:0, slowFor:0, fastFor:0};
 function applyPR(){ renderer.setPixelRatio(PERF.pr); composer.setPixelRatio(PERF.pr); resize(); }
 applyPR();
 HOOKS.frame.push(dt=>{
@@ -3522,8 +3527,35 @@ HOOKS.frame.push(dt=>{
   if (PERF.acc < 1.5) return;
   const fps = PERF.n / PERF.acc; PERF.acc = 0; PERF.n = 0;
   if (fps < 38){ PERF.slowFor++; PERF.fastFor = 0; } else if (fps > 57){ PERF.fastFor++; PERF.slowFor = 0; } else { PERF.slowFor = 0; PERF.fastFor = 0; }
-  if (PERF.slowFor >= 2 && PERF.pr > 0.6){ PERF.pr = Math.max(0.6, PERF.pr - 0.2); PERF.slowFor = 0; applyPR(); }
+  PERF.slow = fps < 45;
+  if (PERF.slowFor >= 2 && PERF.pr > 0.75){ PERF.pr = Math.max(0.75, PERF.pr - 0.25); PERF.slowFor = 0; applyPR(); }
+  else if (PERF.slowFor >= 2 && !PERF.lite && PERF.auto){ setLite(true, true); PERF.slowFor = 0; }
   else if (PERF.fastFor >= 5 && PERF.pr < PERF.max){ PERF.pr = Math.min(PERF.max, PERF.pr + 0.15); PERF.fastFor = 0; applyPR(); }
+});
+
+/* ---------- right hand / left hand ---------- */
+let SWAP = LS.get('neon.swapHands', false);
+function handSide(hd, lm){
+  const lab = hd?.[0]?.categoryName || hd?.[0]?.displayName;
+  // MediaPipe names hands as if the picture were mirrored; the webcam picture isn't, so "Left" is your right hand
+  let side = lab ? (lab==='Left' ? 'R' : 'L') : ((1 - lm[0].x) > 0.5 ? 'R' : 'L');
+  if (SWAP) side = side==='R' ? 'L' : 'R';
+  return side;
+}
+$('#swapBtn').classList.toggle('on', SWAP);
+$('#swapBtn').onclick = e=>{ SWAP = !SWAP; LS.set('neon.swapHands', SWAP); e.currentTarget.classList.toggle('on', SWAP); toast(SWAP ? 'Swapped: tell me if your right hand is blue now.' : 'Back to normal hand colors.'); };
+
+/* ---------- low-power mode ---------- */
+function setLite(on, auto){
+  PERF.lite = on; LS.set('neon.lite', on); $('#liteBtn').classList.toggle('on', on);
+  if (!auto) PERF.auto = false;
+  if (auto && on) toast('Switched to low-power mode so LUMEN runs faster. You can turn it off in Settings.', 5000);
+}
+$('#liteBtn').classList.toggle('on', PERF.lite);
+$('#liteBtn').onclick = ()=> setLite(!PERF.lite);
+HOOKS.commands.push(t=>{
+  if (/\b(low power|power saving|faster mode|speed mode|performance mode)\b/.test(t)){ const off = /\b(off|stop|disable)\b/.test(t); setLite(!off); return off ? 'Full quality is back.' : 'Low-power mode on. I will run faster.'; }
+  return undefined;
 });
 
 /* ---------- resize ---------- */
@@ -3537,8 +3569,8 @@ setTheme(LS.get('neon.theme', 'neon'), true);
 function frame(){
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime, now = performance.now();
 
-  if (camOn && (gestRec || handLm) && video.readyState >= 2 && video.currentTime !== lastVT){
-    lastVT = video.currentTime;
+  if (camOn && (gestRec || handLm) && video.readyState >= 2 && video.currentTime !== lastVT && now - lastTrackAt > (PERF.lite ? 55 : 38)){
+    lastVT = video.currentTime; lastTrackAt = now;
     try{ processHands(runTracker(now), now); drawOverlay(); }catch(e){ console.warn(e); }
     if (now - lightAt > 1500){ lightAt = now; checkLight(now); }
     frames++;
@@ -3593,8 +3625,9 @@ function frame(){
   const inner = hl >= 0 && REGIONS[REGION_IDS[hl]].inner;
   xray += (((inner || XRAY.on) ? 1 : 0) - xray)*Math.min(1, dt*4);
   const breath = 0.05*Math.sin(t*1.3);
-  const decay = Math.exp(-dt*2.4);
-  if (brain.visible) for (const p of parts){
+  const decay = Math.exp(-dt*2.4*(PERF.slow ? 2 : 1));
+  COLF = !COLF;
+  if (brain.visible && (COLF || !PERF.slow)) for (const p of parts){
     const C = p.colors.array, G = p.glow, P = p.P, Wt = p.w, rs = ripples.filter(r=>r.part===p);
     const baseI = (p.inner ? 0.1 + xray*0.12 : (0.11 + breath*0.8 + activity*0.06)*(1 - xray*0.6)) * flicker;
     for (let i=0;i<p.n;i++){
@@ -3621,14 +3654,14 @@ function frame(){
 
   dash.rotation.z = t*0.25; cone.material.uniforms.t.value = t;
   for (const f of HOOKS.frame){ try{ f(dt, t, now); }catch(e){ if (!f._warned){ f._warned = true; console.warn(e); } } }
-  if (PYR.on) renderPyramid(); else composer.render();
+  if (PYR.on) renderPyramid(); else if (PERF.lite) renderer.render(scene, camera); else composer.render();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 setTimeout(()=>{ const b = $('#boot'); b.style.opacity = 0; setTimeout(()=>b.remove(), 900); }, 500);
 for (let i=0;i<120;i++) spawnSpark();
 addEventListener('pointerdown', ()=>{ if ('speechSynthesis' in window) loadVoices(); }, {once:true});
-Object.assign(window.NEON_TEST, {processHands, SHAPE, setShape, shapeGestures, airPointer, airClick, slideStep, LOG, openChat, PERF, connectGemini, openCar, closeCar, CAR, holoStep, goBack, handsFree, HF, confirmYes, get pending(){ return pendingConfirm; }, setConf:v=>{ lastConf = v; }, detectGemini, openHome, closeHome, KEEP, say:handleUtterance, ACT, HOLO, setHolo, MEM, TIMERS, DECKS, STUDY, PYR, EXP, XRAY, SLICE, DRAW, KB, CUSTOM, checkAnswer, parseClock, parseDuration, pickBrain, menu:()=>menuPath});
+Object.assign(window.NEON_TEST, {handSide, setLite, processHands, SHAPE, setShape, shapeGestures, airPointer, airClick, slideStep, LOG, openChat, PERF, connectGemini, openCar, closeCar, CAR, holoStep, goBack, handsFree, HF, confirmYes, get pending(){ return pendingConfirm; }, setConf:v=>{ lastConf = v; }, detectGemini, openHome, closeHome, KEEP, say:handleUtterance, ACT, HOLO, setHolo, MEM, TIMERS, DECKS, STUDY, PYR, EXP, XRAY, SLICE, DRAW, KB, CUSTOM, checkAnswer, parseClock, parseDuration, pickBrain, menu:()=>menuPath});
 </script>
 
 </body>
